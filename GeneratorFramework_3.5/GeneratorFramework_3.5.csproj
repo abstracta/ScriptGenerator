@@ -1,0 +1,316 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1BFBD29D-6A3A-4820-A3F0-E12E5895B435}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Abstracta.Generators.Framework</RootNamespace>
+    <AssemblyName>Abstracta.Generator_3.5</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Abstracta.GXtest.Utils, Version=2.1.2.3050, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\dependencies\Abstracta.GXtest.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="FiddlerCore">
+      <HintPath>..\dependencies\.NET_3.5\FiddlerCore.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\dependencies\.NET_3.5\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\AbstractFollowRedirect.cs">
+      <Link>AbstractGenerator\AbstractFollowRedirect.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\AbstractGenerator.cs">
+      <Link>AbstractGenerator\AbstractGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\AbstractPageRequest.cs">
+      <Link>AbstractGenerator\AbstractPageRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\AbstractStep.cs">
+      <Link>AbstractGenerator\AbstractStep.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Command.cs">
+      <Link>AbstractGenerator\Command.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\DataPool.cs">
+      <Link>AbstractGenerator\DataPool.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\FiddlerSessionExtension.cs">
+      <Link>AbstractGenerator\Extensions\FiddlerSessionExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\SessionUtils.cs">
+      <Link>AbstractGenerator\Extensions\SessionUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\StringUtils.cs">
+      <Link>AbstractGenerator\Extensions\StringUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\HTTPRequest.cs">
+      <Link>AbstractGenerator\HTTPRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\ParameterExtractor\AbstractParameterExtractor.cs">
+      <Link>AbstractGenerator\ParameterExtractor\AbstractParameterExtractor.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\ParameterExtractor\AbstractRegExParameter.cs">
+      <Link>AbstractGenerator\ParameterExtractor\AbstractRegExParameter.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\ParameterExtractor\NameGenerator.cs">
+      <Link>AbstractGenerator\ParameterExtractor\NameGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\ParametersType.cs">
+      <Link>AbstractGenerator\ParametersType.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Validations\AbstractValidation.cs">
+      <Link>AbstractGenerator\Validations\AbstractValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Validations\AppearTextValidation.cs">
+      <Link>AbstractGenerator\Validations\AppearTextValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Validations\CheckMainObjectValidation.cs">
+      <Link>AbstractGenerator\Validations\CheckMainObjectValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Validations\DefaultValidation.cs">
+      <Link>AbstractGenerator\Validations\DefaultValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Validations\ResponseCodeValidation.cs">
+      <Link>AbstractGenerator\Validations\ResponseCodeValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\Constants\HTTPConstants.cs">
+      <Link>Constants\HTTPConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs">
+      <Link>JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\ResponseCodeValidation.cs">
+      <Link>JMeterGenerator\Validations\ResponseCodeValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\ValidationHelper.cs">
+      <Link>JMeterGenerator\Validations\ValidationHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Wrappers\FiddlerSessionsWrapper.cs">
+      <Link>AbstractGenerator\Wrapper\FiddlerSessionsWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Wrappers\GXTestScriptWrapper.cs">
+      <Link>AbstractGenerator\Wrapper\GXTestScriptWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\AuxiliarClasses\CommonArgumentTypes.cs">
+      <Link>JMeterGenerator\AuxiliarClasses\CommonArgumentTypes.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\AuxiliarClasses\CommonCollectorTypes.cs">
+      <Link>JMeterGenerator\AuxiliarClasses\CommonCollectorTypes.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\AuxiliarClasses\JMeterWrapper.cs">
+      <Link>JMeterGenerator\AuxiliarClasses\JMeterWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\AuxiliarClasses\ThinktimeType.cs">
+      <Link>JMeterGenerator\AuxiliarClasses\ThinktimeType.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\JMeterGenerator.cs">
+      <Link>JMeterGenerator\JMeterGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\PageRequest.cs">
+      <Link>JMeterGenerator\PageRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Step.cs">
+      <Link>JMeterGenerator\Step.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\AppearTextValidation.cs">
+      <Link>JMeterGenerator\Validations\AppearTextValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\CheckMainObjectValidation.cs">
+      <Link>JMeterGenerator\Validations\CheckMainObjectValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\DefaultValidation.cs">
+      <Link>JMeterGenerator\Validations\DefaultValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\DataFile.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\DataFile.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\DataFileColumn.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\DataFileColumn.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\OpenSTAUtils.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\OpenSTAUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\ParametrizedValue.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\ParametrizedValue.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Repository.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Repository.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\AppearTextSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\AppearTextSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromBlobSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromBlobSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromUserSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromUserSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\CodeSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\CodeSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\Comment.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\Comment.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\ConstantDeclarationSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\ConstantDeclarationSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\EndTimer.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\EndTimer.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\EnviromentSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\EnviromentSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\HeaderSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\HeaderSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludedScriptSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludedScriptSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludeSecondaryScript.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludeSecondaryScript.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\ISCLSections.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\ISCLSections.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\LoadCookieSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\LoadCookieSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\LogResponsesSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\LogResponsesSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\PlainCode.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\PlainCode.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\RequestSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\RequestSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\StartTimer.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\StartTimer.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\ThinkTimeSection.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\ThinkTimeSection.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SCLSnippets\VariableDeclaration.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SCLSnippets\VariableDeclaration.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Scripts\IncludedScriptSCL.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Scripts\IncludedScriptSCL.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Scripts\IScript.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Scripts\IScript.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Scripts\MainScriptSCL.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Scripts\MainScriptSCL.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Scripts\ScriptInc.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Scripts\ScriptInc.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Scripts\ScriptSCL.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Scripts\ScriptSCL.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\SessionUtils.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\SessionUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\Variable.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\Variable.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\VariablesScopes.cs">
+      <Link>OSTAGenerator\AuxiliarClasses\VariablesScopes.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\OpenSTAGenerator.cs">
+      <Link>OSTAGenerator\OpenSTAGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\PageRequest.cs">
+      <Link>OSTAGenerator\PageRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\ParameterExtractor\OSTARegExParameter.cs">
+      <Link>OSTAGenerator\ParameterExtractor\OSTARegExParameter.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\Step.cs">
+      <Link>OSTAGenerator\Step.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\Validations\AppearTextValidation.cs">
+      <Link>OSTAGenerator\Validations\AppearTextValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\Validations\CheckMainObjectValidation.cs">
+      <Link>OSTAGenerator\Validations\CheckMainObjectValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\Validations\DefaultValidation.cs">
+      <Link>OSTAGenerator\Validations\DefaultValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\Validations\ResponseCodeValidation.cs">
+      <Link>OSTAGenerator\Validations\ResponseCodeValidation.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\ScriptGenerator.cs">
+      <Link>ScriptGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\TestingGenerator\PageRequest.cs">
+      <Link>TestingGenerator\PageRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\TestingGenerator\ParameterExtractor\TestRegExParameter.cs">
+      <Link>TestingGenerator\ParameterExtractor\TestRegExParameter.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\TestingGenerator\Step.cs">
+      <Link>TestingGenerator\Step.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\TestingGenerator\TestingGenerator.cs">
+      <Link>TestingGenerator\TestingGenerator.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\GeneratorFramework_4.5\Readme.txt">
+      <Link>Readme.txt</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FiddlerSessionComparer_3.5\FiddlerSessionComparer_3.5.csproj">
+      <Project>{2fed9ccb-c331-4bab-8b8d-17754dc873b7}</Project>
+      <Name>FiddlerSessionComparer_3.5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

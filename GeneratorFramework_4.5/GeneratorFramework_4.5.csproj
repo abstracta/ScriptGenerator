@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9A06DD95-6713-463D-BDC3-B841A2F2E9AC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Abstracta.Generators.Framework</RootNamespace>
+    <AssemblyName>Abstracta.Generator_4.5</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Abstracta.GXtest.Utils, Version=2.1.2.3050, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\dependencies\Abstracta.GXtest.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="FiddlerCore">
+      <HintPath>..\dependencies\.NET_4.5\FiddlerCore.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\dependencies\.NET_4.5\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AbstractGenerator\HTTPRequest.cs" />
+    <Compile Include="AbstractGenerator\ParameterExtractor\AbstractRegExParameter.cs" />
+    <Compile Include="AbstractGenerator\Extensions\StringUtils.cs" />
+    <Compile Include="AbstractGenerator\AbstractFollowRedirect.cs" />
+    <Compile Include="AbstractGenerator\ParameterExtractor\AbstractParameterExtractor.cs" />
+    <Compile Include="AbstractGenerator\ParameterExtractor\NameGenerator.cs" />
+    <Compile Include="AbstractGenerator\ParametersType.cs" />
+    <Compile Include="AbstractGenerator\Validations\CheckMainObjectValidation.cs" />
+    <Compile Include="AbstractGenerator\Validations\AppearTextValidation.cs" />
+    <Compile Include="AbstractGenerator\Command.cs" />
+    <Compile Include="AbstractGenerator\DataPool.cs" />
+    <Compile Include="AbstractGenerator\AbstractStep.cs" />
+    <Compile Include="AbstractGenerator\Validations\ResponseCodeValidation.cs" />
+    <Compile Include="AbstractGenerator\Validations\DefaultValidation.cs" />
+    <Compile Include="AbstractGenerator\Extensions\FiddlerSessionExtension.cs" />
+    <Compile Include="AbstractGenerator\Extensions\SessionUtils.cs" />
+    <Compile Include="AbstractGenerator\Validations\AbstractValidation.cs" />
+    <Compile Include="Constants\HTTPConstants.cs" />
+    <Compile Include="JMeterGenerator\AuxiliarClasses\CommonArgumentTypes.cs" />
+    <Compile Include="JMeterGenerator\AuxiliarClasses\CommonCollectorTypes.cs" />
+    <Compile Include="JMeterGenerator\AuxiliarClasses\JMeterWrapper.cs" />
+    <Compile Include="JMeterGenerator\AuxiliarClasses\ThinktimeType.cs" />
+    <Compile Include="JMeterGenerator\PageRequest.cs" />
+    <Compile Include="JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs" />
+    <Compile Include="JMeterGenerator\Step.cs" />
+    <Compile Include="AbstractGenerator\Wrappers\FiddlerSessionsWrapper.cs" />
+    <Compile Include="AbstractGenerator\Wrappers\GXTestScriptWrapper.cs" />
+    <Compile Include="JMeterGenerator\JMeterGenerator.cs" />
+    <Compile Include="JMeterGenerator\Validations\ResponseCodeValidation.cs" />
+    <Compile Include="JMeterGenerator\Validations\ValidationHelper.cs" />
+    <Compile Include="JMeterGenerator\Validations\AppearTextValidation.cs" />
+    <Compile Include="JMeterGenerator\Validations\CheckMainObjectValidation.cs" />
+    <Compile Include="JMeterGenerator\Validations\DefaultValidation.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\DataFile.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\DataFileColumn.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\ParametrizedValue.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\AppearTextSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromBlobSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\BuildBlobFromUserSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\CodeSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\Comment.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\ConstantDeclarationSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\EndTimer.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\EnviromentSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\HeaderSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludedScriptSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\IncludeSecondaryScript.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\ISCLSections.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\LoadCookieSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\LogResponsesSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\PlainCode.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\RequestSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\StartTimer.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\ThinkTimeSection.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SCLSnippets\VariableDeclaration.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Scripts\IncludedScriptSCL.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Scripts\IScript.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Scripts\MainScriptSCL.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Scripts\ScriptInc.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Scripts\ScriptSCL.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\SessionUtils.cs" />
+    <Compile Include="OSTAGenerator\OpenSTAGenerator.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\OpenSTAUtils.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Repository.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\Variable.cs" />
+    <Compile Include="OSTAGenerator\AuxiliarClasses\VariablesScopes.cs" />
+    <Compile Include="AbstractGenerator\AbstractPageRequest.cs" />
+    <Compile Include="OSTAGenerator\PageRequest.cs" />
+    <Compile Include="OSTAGenerator\ParameterExtractor\OSTARegExParameter.cs" />
+    <Compile Include="OSTAGenerator\Validations\AppearTextValidation.cs" />
+    <Compile Include="OSTAGenerator\Validations\CheckMainObjectValidation.cs" />
+    <Compile Include="OSTAGenerator\Validations\DefaultValidation.cs" />
+    <Compile Include="OSTAGenerator\Validations\ResponseCodeValidation.cs" />
+    <Compile Include="ScriptGenerator.cs" />
+    <Compile Include="AbstractGenerator\AbstractGenerator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="OSTAGenerator\Step.cs" />
+    <Compile Include="TestingGenerator\PageRequest.cs" />
+    <Compile Include="TestingGenerator\ParameterExtractor\TestRegExParameter.cs" />
+    <Compile Include="TestingGenerator\Step.cs" />
+    <Compile Include="TestingGenerator\TestingGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FiddlerSessionComparer_4.5\FiddlerSessionComparer_4.5.csproj">
+      <Project>{e228fdb9-9b9b-43b5-a9c1-ab11aa47f136}</Project>
+      <Name>FiddlerSessionComparer_4.5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

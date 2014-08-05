@@ -1,0 +1,34 @@
+﻿<Window x:Class="Abstracta.ScriptGenerator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Abstracta.Generator" Height="250" Width="700" ResizeMode="NoResize">
+
+    <Grid>
+        <Label Content="Host:Port" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Height="30" Width="100"/>
+        <TextBox Name="Host" HorizontalAlignment="Left" Height="30" Margin="125,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
+
+        <Label Content="Application name" HorizontalAlignment="Left" Margin="350,25,0,0" VerticalAlignment="Top" Height="35" Width="105"/>
+        <TextBox Name="AppName" HorizontalAlignment="Left" Height="30" Margin="475,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
+
+        <Label Content="Fiddler Session 1" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="FiddlerFileName1" HorizontalAlignment="Left" Height="30" Margin="125,65,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+
+        <Label Content="Fiddler Session 2" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="FiddlerFileName2" HorizontalAlignment="Left" Height="30" Margin="125,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+
+        <Label Content="Result Folder" HorizontalAlignment="Left" Margin="10,135,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,135,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+
+        <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="0,180,0,0" VerticalAlignment="Top" Width="145" Click="GenerateScript"/>
+    </Grid>
+
+    <Window.Resources>
+        <!--A Style that affects all TextBlocks-->
+        <Style TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <!-- <Setter Property="FontFamily" Value="Comic Sans MS"/>-->
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </Window.Resources>
+</Window>
