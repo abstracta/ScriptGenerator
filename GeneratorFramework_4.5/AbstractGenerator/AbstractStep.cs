@@ -47,7 +47,10 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             }
 
             // find the Page of the request in the Page tree
-            page = page.FindSubPage(httpReq);
+            if (page != null) 
+            {
+                page = page.FindSubPage(httpReq);
+            }
 
             var referer = httpReq.oRequest.headers["Referer"];
 
