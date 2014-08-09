@@ -75,6 +75,7 @@
     <Compile Include="JMeterGenerator\AuxiliarClasses\JMeterWrapper.cs" />
     <Compile Include="JMeterGenerator\AuxiliarClasses\ThinktimeType.cs" />
     <Compile Include="JMeterGenerator\PageRequest.cs" />
+    <Compile Include="JMeterGenerator\ParameterExtractor\JMeterConstant.cs" />
     <Compile Include="JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs" />
     <Compile Include="JMeterGenerator\Step.cs" />
     <Compile Include="AbstractGenerator\Wrappers\FiddlerSessionsWrapper.cs" />

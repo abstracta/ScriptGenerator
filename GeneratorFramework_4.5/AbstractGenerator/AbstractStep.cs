@@ -257,13 +257,13 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
                 // e.g. "{"gxCommands":[{"redirect":{"url":"historiaclinicaprincipalv2?INS,0,1,3","forceDisableFrm":1}}]}"
                 var expression = url.Substring(0, index) + "(\\?[^\"]*)\"";
-                return CreateRegExpExtractorToGetRedirectParameters(NameGenerator.GetInstance().GetNewName(), expression, valueToReplace, desc);
+                return CreateRegExpExtractorToGetRedirectParameters(NameGenerator.GetInstance().GetNewName(), expression, "$1$", valueToReplace, desc);
             }
 
             return null;
         }
 
-        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string bodyAsString, string expression, string valueToReplace, string description);
+        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string bodyAsString, string expression, string group, string valueToReplace, string description);
 
         protected abstract AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page);
 

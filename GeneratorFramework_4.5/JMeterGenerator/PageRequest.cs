@@ -297,18 +297,85 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             if (page != null)
             {
                 // todo review transformation of parameters
-                var parms = page.GetParametersToExtract().Select(extractor => new JMeterRegExParameter(
-                                extractor.ExpressionPrefix, 
-                                extractor.RegularExpressionExtractor != null ?
-                                    extractor.RegularExpressionExtractor.RegExp :
-                                    "No RegExp extractor was defined for this param."
-                                ,                     
-                                extractor.Values[0],                     
-                                "Used in pages: { " + string.Join(",", extractor.UsedInPages.Select(p => p.Id.ToString(CultureInfo.InvariantCulture)).ToArray()) + " } Original value: " + extractor.Values[0]));
+                var parms = new List<JMeterRegExParameter>();
+                var constants = new List<JMeterConstant>();
+
+                foreach (var parameter in page.GetParametersToExtract())
+                {
+                    var description = "Used in pages: { "
+                                          + string.Join(",", parameter.UsedInPages.Select(p => p.Id + "").ToArray())
+                                          + " } Original value: " + parameter.Values[0];
+
+                    if (parameter.SourceOfValue is RegExpExtractor)
+                    {
+                        var valueSource = parameter.SourceOfValue as RegExpExtractor;
+                        var regExp = parameter.SourceOfValue != null
+                                         ? valueSource.RegExp
+                                         : "No RegExp extractor was defined for this param.";
+                        
+                        var newValue = new JMeterRegExParameter(
+                            parameter.VariableName,
+                            regExp,
+                            "$" + valueSource.GroupNumber + "$",
+                            parameter.Values[0],
+                            description
+                            );
+
+                        parms.Add(newValue);
+                    }
+                    else
+                    {
+                        var newConstant = new JMeterConstant(parameter.VariableName, parameter.Values[0], description);
+
+                        constants.Add(newConstant);
+                    }
+                }
 
                 foreach (var paramExtractor in parms)
                 {
                     WriteElement(xmlWriter, paramExtractor);
+                }
+
+                if (constants.Count > 0)
+                {
+                    // Write collection of constants
+                    /*
+                    <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Constants that couldn&apos;t be extracted from HTML" enabled="true">
+                      <collectionProp name="Arguments.arguments">
+                        <elementProp name="vUSUARIOMENUCODIGO" elementType="Argument">
+                          <stringProp name="Argument.name">vUSUARIOMENUCODIGO</stringProp>
+                          <stringProp name="Argument.value">A7</stringProp>
+                          <stringProp name="Argument.metadata">=</stringProp>
+                          <stringProp name="Argument.desc">Used in pages: { 14,17 } Original value: A7</stringProp>
+                        </elementProp>
+                      </collectionProp>
+                    </Arguments>
+                     * */
+
+                    JMeterWrapper.WriteStartElement(xmlWriter, "Arguments", "ArgumentsPanel", "Arguments", "Constants that couldn't be extracted from HTML", "true");
+                    JMeterWrapper.WriteStartElement(xmlWriter, "collectionProp", "Arguments.arguments");
+
+                    foreach (var jMeterConstant in constants)
+                    {
+                        JMeterWrapper.WriteStartElement(xmlWriter, "elementProp", jMeterConstant.Name, "Argument");
+
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.name", jMeterConstant.Name);
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.value", jMeterConstant.Value);
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.metadata", "=");
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.desc", jMeterConstant.Description);
+
+                        // </elementProp>
+                        xmlWriter.WriteEndElement();
+                    }
+
+                    // </collectionProp>
+                    xmlWriter.WriteEndElement();
+
+                    // </Arguments>
+                    xmlWriter.WriteEndElement();
+
+                    xmlWriter.WriteStartElement("hashTree");
+                    xmlWriter.WriteEndElement();
                 }
             }
 
@@ -343,9 +410,9 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             xmlWriter.WriteEndElement();
         }
 
-        private static void WriteElement(XmlWriter xmlWriter, object validation)
+        private static void WriteElement(XmlWriter xmlWriter, object element)
         {
-            var validationString = validation.ToString();
+            var validationString = element.ToString();
             xmlWriter.WriteRaw(validationString);
         }
 

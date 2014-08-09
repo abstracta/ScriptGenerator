@@ -21,14 +21,15 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 foreach (var parameter in _parametersToUse.Where(parameter => parameter.ParameterTarget == UseToReplaceIn.Body))
                 {
-                    if (parameter.RegularExpressionExtractor == null)
+                    if (parameter.SourceOfValue == null)
                     {
-                        Utils.Logger.GetInstance().Log("Something bad happened. RegularExpressionExtractor is null: " + parameter);
+                        Utils.Logger.GetInstance().Log("Something bad happened. SourceOfValue is null: " + parameter);
                         continue;
                     }
+
                     // for each parameter replace it as escaped and as plain string .. maybe have to improve this
-                    var replaceValue = FiddlerSessionComparer.EscapeString(parameter.RegularExpressionExtractor.ReplaceValue);
-                    var replaceWith = FiddlerSessionComparer.EscapeString(parameter.RegularExpressionExtractor.ReplaceWith);
+                    var replaceValue = FiddlerSessionComparer.EscapeString(parameter.SourceOfValue.ReplaceValue);
+                    var replaceWith = FiddlerSessionComparer.EscapeString(parameter.SourceOfValue.ReplaceWith);
 
                     var variable = "${__urlencode(${" + parameter.ExpressionPrefix + "})}";
                     replaceWith = replaceWith.Replace(Parameter.EscapedDefaultVariableName, variable);
@@ -39,8 +40,8 @@ namespace Abstracta.FiddlerSessionComparer
                     }
                     else
                     {
-                        replaceValue = parameter.RegularExpressionExtractor.ReplaceValue;
-                        replaceWith = parameter.RegularExpressionExtractor.ReplaceWith.Replace(Parameter.DefaultVariableName,
+                        replaceValue = parameter.SourceOfValue.ReplaceValue;
+                        replaceWith = parameter.SourceOfValue.ReplaceWith.Replace(Parameter.DefaultVariableName,
                                                                                      variable);
                         if (_bodyOfPost.Contains(replaceValue))
                         {
@@ -67,8 +68,8 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 foreach (var parameter in _parametersToUse.Where(parameter => parameter.ParameterTarget == UseToReplaceIn.Url))
                 {
-                    var replaceValue = parameter.RegularExpressionExtractor.ReplaceValue;
-                    var replaceWith = parameter.RegularExpressionExtractor.ReplaceWith;
+                    var replaceValue = parameter.SourceOfValue.ReplaceValue;
+                    var replaceWith = parameter.SourceOfValue.ReplaceWith;
 
                     if (_url.Contains(replaceValue))
                     {
@@ -115,15 +116,16 @@ namespace Abstracta.FiddlerSessionComparer
                 return;
             }
 
-            if (parameter.RegularExpressionExtractor == null)
+            if (parameter.SourceOfValue == null)
             {
-                Utils.Logger.GetInstance().Log("ERROR: parameter.RegularExpressionExtractor == null in AddParameterToUse: " + parameter);
+                Utils.Logger.GetInstance().Log("ERROR: parameter.SourceOfValue == null in AddParameterToUse: " + parameter);
             }
 
             // When the Page has more than one follower, and two of them use the same variable, they may be repeated
             if (_parametersToUse.All(p => p.ExpressionPrefix != parameter.ExpressionPrefix))
             {
-                _parametersToUse.Add(parameter);    
+                _parametersToUse.Add(parameter);
+                parameter.UsedInPages.Add(this);
             }
         }
 
@@ -137,7 +139,7 @@ namespace Abstracta.FiddlerSessionComparer
             if (parameter.ParameterTarget == UseToReplaceIn.Body)
             {
                 # region Parameter used in a Body of a POST
-                // When the Page has more than one follower, and two of them use the same variable, they may be repeated
+                // When this Page has more than one follower, and two of them use the same parameter, I don't need to extract it twice. Just return it.
                 if (_parametersToExtract.Any(p => p.ExpressionPrefix == parameter.ExpressionPrefix))
                 {
                     return _parametersToExtract.First(p => p.ExpressionPrefix == parameter.ExpressionPrefix);
@@ -151,8 +153,11 @@ namespace Abstracta.FiddlerSessionComparer
                     _parametersToExtract.Add(parameter);
                 }
                     // Search the parameter in the HTML response of the followers
-                    // Case (1) -> GET HTML; (2) -> GET OR POST { UPDATE HTML }; (3) -> GET OR POST { WITH UPDATED HTML }
-                    // GET / POST OF (2) AND (3) HAVE THE SAME REFERER
+                    // Example: (1) -> GET HTML; 
+                    //          (2) -> GET OR POST AJAX REQUEST { UPDATE HTML }; 
+                    //          (3) -> GET OR POST { WITH UPDATED HTML }
+                    // GET / POST OF (2) AND (3) HAVE THE SAME REFERER, but the value searched is in the response of (2). 
+                    // The value searched isn't in the response of (1)
                 else
                 {
                     var follower = Followers.FirstOrDefault(f => parameter.IsContainedInHTML(f.HTMLResponse));

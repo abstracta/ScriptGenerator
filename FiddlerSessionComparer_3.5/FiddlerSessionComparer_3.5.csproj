@@ -74,6 +74,9 @@
     <Compile Include="..\FiddlerSessionComparer_4.5\Parameter.cs">
       <Link>Parameter.cs</Link>
     </Compile>
+    <Compile Include="..\FiddlerSessionComparer_4.5\ParameterSoure.cs">
+      <Link>ParameterSoure.cs</Link>
+    </Compile>
     <Compile Include="..\FiddlerSessionComparer_4.5\RegExpExtractor.cs">
       <Link>RegExpExtractor.cs</Link>
     </Compile>

@@ -6,8 +6,8 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
 {
     internal class JMeterRegExParameter : AbstractGenerator.ParameterExtractor.AbstractRegExParameter
     {
-        internal JMeterRegExParameter(string varibleName, string regularExpression, string valueToReplace, string description)
-            : base(varibleName, regularExpression, valueToReplace, description)
+        internal JMeterRegExParameter(string varibleName, string regularExpression, string group, string valueToReplace, string description)
+            : base(varibleName, regularExpression, group, valueToReplace, description)
         {
         }
 
@@ -40,7 +40,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", "false");
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.refname", VariableName);
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.regex", RegularExpression);
-                JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", "$1$");
+                JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", Group);
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.default", "NOT FOUND");
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.match_number", "1");
 

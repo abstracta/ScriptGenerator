@@ -17,7 +17,7 @@ namespace Abstracta.FiddlerSessionComparer
 
         public Page ExtractedFromPage { get; set; }
 
-        public RegExpExtractor RegularExpressionExtractor { get; set; }
+        public ParameterSoure SourceOfValue { get; set; }
 
         public List<Page> UsedInPages { get; set; }
 
@@ -40,7 +40,7 @@ namespace Abstracta.FiddlerSessionComparer
                    "UsedInPages='" + pages + "' " +
                    "VariableName='" + VariableName + "' " +
                    "ExpressionPrefix='" + ExpressionPrefix + "' " +
-                   "RegExp=" + RegularExpressionExtractor + " " +
+                   "SourceOfValue=" + SourceOfValue + " " +
                    "Values=['" + values + "']" +
                    "}";
         }
@@ -67,7 +67,7 @@ namespace Abstracta.FiddlerSessionComparer
                 if (htmlTag == null)
                 {
                     // todo: need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
-                    RegularExpressionExtractor = new RegExpExtractor(1, "", "1", "1");
+                    SourceOfValue = new RegExpExtractor(1, "", "1", "1");
                     Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
                     return;
                 }
@@ -103,7 +103,7 @@ namespace Abstracta.FiddlerSessionComparer
                 regExp = "\"" + ExpressionPrefix + "\\?([^\"]*)\"";
             }
 
-            RegularExpressionExtractor = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
+            SourceOfValue = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
         }
 
         public void SetRegularExpressionOfParameterFromBody(string body)
@@ -115,12 +115,12 @@ namespace Abstracta.FiddlerSessionComparer
 
             if (pos < 0)
             {
-                RegularExpressionExtractor = new RegExpExtractor(1, "", "1", "1");
+                SourceOfValue = new RegExpExtractor(1, "", "1", "1");
                 Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
                 return;
             }
 
-            RegularExpressionExtractor = GetRegExp(bodyCopy, pos, new KeyValuePair<string, string>(ExpressionPrefix, Values[0]));
+            SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
         }
 
         public bool IsContainedInHTML(string htmlResponse)
@@ -128,53 +128,48 @@ namespace Abstracta.FiddlerSessionComparer
             return IndexOfParameterInHTML(htmlResponse, ExpressionPrefix) >= 0;
         }
 
-        private RegExpExtractor GetRegExp(string body, int pos, KeyValuePair<string, string> pair)
+        private ParameterSoure GetRegExp(string body, int pos, string parameterName, string value)
         {
-            switch (GetBodyType(body, pos, pair))
+            switch (GetBodyType(body, pos, parameterName, value))
             {
                 case VariableType.HTML:
                     // \b<variableName>=([^&$]*)
                     // holaquetal="1"&jhoholaquetal="2"&holaquetal="3"&hholaquetal="4"&holaquetal="5"
                     // matches "1", "3", "5"
                     // http://stackoverflow.com/questions/2552428/regex-use-start-of-line-end-of-line-signs-or-in-different-context
-                    return new RegExpExtractor(1, "\\b" + pair.Key + "=([^&$]*)",
-                                               pair.Key + "=" + pair.Value,
-                                               pair.Key + "=" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, "\\b" + parameterName + "=([^&$]*)",
+                                               parameterName + "=" + value,
+                                               parameterName + "=" + DefaultVariableName + "");
                 case VariableType.JSONString:
-                    return new RegExpExtractor(1, "\"" + pair.Key + "\":\"([^\"]*)\"",
-                                                "\"" + pair.Key + "\":\"" + pair.Value + "\"",
-                                                "\"" + pair.Key + "\":\"" + DefaultVariableName + "\"");
+                    return new RegExpExtractor(1, "\"" + parameterName + "\":\"([^\"]*)\"",
+                                                "\"" + parameterName + "\":\"" + value + "\"",
+                                                "\"" + parameterName + "\":\"" + DefaultVariableName + "\"");
                 case VariableType.JSONInt:
-                    return new RegExpExtractor(1, "\"" + pair.Key + "\":([\\d]+(\\.[\\d]+)?)",
-                                                "\"" + pair.Key + "\":" + pair.Value + "",
-                                                "\"" + pair.Key + "\":" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, "\"" + parameterName + "\":([\\d]+(\\.[\\d]+)?)",
+                                                "\"" + parameterName + "\":" + value + "",
+                                                "\"" + parameterName + "\":" + DefaultVariableName + "");
 
                 case VariableType.JSONBool:
-                    return new RegExpExtractor(1, "\"" + pair.Key + "\":(true|false|null)[,|\\}|\\]]",
-                                                "\"" + pair.Key + "\":" + pair.Value + "",
-                                                "\"" + pair.Key + "\":" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, "\"" + parameterName + "\":(true|false|null)[,|\\}|\\]]",
+                                                "\"" + parameterName + "\":" + value + "",
+                                                "\"" + parameterName + "\":" + DefaultVariableName + "");
 
                 case VariableType.ToStringedJSON:
-                    return new RegExpExtractor(1, "\"" + pair.Key + "\\\\\",\\\\\"([^\\\\\"]*)\\\\\"",
-                                                "\"" + pair.Key + "\\\\\",\\\\\"" + pair.Value + "\\\\\"",
-                                                "\"" + pair.Key + "\\\\\",\\\\\"" + DefaultVariableName + "\\\\\"");
+                    return new RegExpExtractor(1, "\"" + parameterName + "\\\\\",\\\\\"([^\\\\\"]*)\\\\\"",
+                                                "\"" + parameterName + "\\\\\",\\\\\"" + value + "\\\\\"",
+                                                "\"" + parameterName + "\\\\\",\\\\\"" + DefaultVariableName + "\\\\\"");
                 default:
-                    VariableName += "_UndefinedTypeParameter";
-
-                    Utils.Logger.GetInstance().Log("Parameter context format (HTML, JSON) undefined: " + this);
-                    return new RegExpExtractor(1, "\\b" + pair.Key + "=([^&$]*)",
-                                               pair.Key + "=" + pair.Value,
-                                               pair.Key + "=" + DefaultVariableName + "");
+                    // VariableName += "_UndefinedTypeParameter";
+                    // Utils.Logger.GetInstance().Log("Parameter context format (HTML, JSON) undefined: " + this);
+                    return new ParameterSoure(parameterName, value);
             }
         }
 
-        private static VariableType GetBodyType(string body, int pos, KeyValuePair<string, string> pair)
+        private static VariableType GetBodyType(string body, int pos, string key, string value)
         {
-            // checks if parameters are separated by ampersands, as in HTML POST format
-            // bug: esta sintaxis es para los requests, no para los responses. hay que chequear que vengan los params en html.
-            if ((pos == 0 || body[pos - 1] == '&') && (
-                                                          (pos + pair.Key.Length + 1 + pair.Value.Length) == body.Length ||
-                                                          body[pos + pair.Key.Length + 1 + pair.Value.Length] == '&'))
+            // checks if there is a tag in the HTML response, that contains the value and the key
+            var htmlTag = GetTagThatContainsValue(body, value);
+            if (htmlTag != null && htmlTag.Contains(key))
             {
                 return VariableType.HTML;
             }
@@ -187,21 +182,21 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             // checks if parameters are in JSON format
-            if (body[pos - 1] == '\"' && body[pos + pair.Key.Length] == '\"')
+            if (body[pos - 1] == '\"' && body[pos + key.Length] == '\"')
             {
-                if (body[pos + pair.Key.Length + 2] == '\"')
+                if (body[pos + key.Length + 2] == '\"')
                 {
                     return VariableType.JSONString;
                 }
 
-                if (char.IsNumber(body[pos + pair.Key.Length + 2]))
+                if (char.IsNumber(body[pos + key.Length + 2]))
                 {
                     return VariableType.JSONInt;
                 }
 
-                if (body.Substring(pos + pair.Key.Length + 2, 4).ToLower().Equals("true") ||
-                    body.Substring(pos + pair.Key.Length + 2, 4).ToLower().Equals("null") ||
-                    body.Substring(pos + pair.Key.Length + 2, 5).ToLower().Equals("false"))
+                if (body.Substring(pos + key.Length + 2, 4).ToLower().Equals("true") ||
+                    body.Substring(pos + key.Length + 2, 4).ToLower().Equals("null") ||
+                    body.Substring(pos + key.Length + 2, 5).ToLower().Equals("false"))
                 {
                     return VariableType.JSONBool;
                 }

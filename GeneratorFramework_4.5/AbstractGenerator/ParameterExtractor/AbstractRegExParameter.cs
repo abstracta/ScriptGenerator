@@ -4,10 +4,13 @@
     {
         internal string RegularExpression { get; set; }
 
-        protected AbstractRegExParameter(string variableName, string regularExpression, string valueToReplace, string description)
+        internal string Group { get; set; }
+
+        protected AbstractRegExParameter(string variableName, string regularExpression, string group, string valueToReplace, string description)
             : base(variableName, valueToReplace, description)
         {
             RegularExpression = regularExpression;
+            Group = group;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
 using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator;
 using Fiddler;
@@ -14,7 +15,7 @@ namespace Abstracta.Generators.Framework.TestingGenerator
 
         public override string ToString()
         {
-            var result = "\tPrimReq: " + GetRequestString(FiddlerSession) + "\n";
+            var result = "\tPrimReq: (" + (InfoPage == null? "?" : InfoPage.Id.ToString(CultureInfo.CurrentCulture)) + ") " + GetRequestString(FiddlerSession) + "\n";
 
             // ---------------------------------
 

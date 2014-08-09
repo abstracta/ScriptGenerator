@@ -112,6 +112,9 @@
     <Compile Include="..\GeneratorFramework_4.5\Constants\HTTPConstants.cs">
       <Link>Constants\HTTPConstants.cs</Link>
     </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\ParameterExtractor\JMeterConstant.cs">
+      <Link>JMeterGenerator\ParameterExtractor\JMeterConstant.cs</Link>
+    </Compile>
     <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs">
       <Link>JMeterGenerator\ParameterExtractor\JMeterRegExParameter.cs</Link>
     </Compile>

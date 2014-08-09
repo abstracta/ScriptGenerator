@@ -274,7 +274,7 @@ namespace Abstracta.FiddlerSessionComparer
                     parameter = new Parameter
                         {
                             ExtractedFromPage = page.Referer,
-                            UsedInPages = new List<Page> { page },
+                            UsedInPages = new List<Page>(),
                             Values = new List<string> { temp1, temp2 },
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
@@ -294,7 +294,7 @@ namespace Abstracta.FiddlerSessionComparer
                         parameter = new Parameter
                         {
                             ExtractedFromPage = page.Referer,
-                            UsedInPages = new List<Page> { page },
+                            UsedInPages = new List<Page>(),
                             Values = new List<string> { temp1, temp2 },
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
@@ -315,7 +315,7 @@ namespace Abstracta.FiddlerSessionComparer
                         parameter = new Parameter
                         {
                             ExtractedFromPage = page.Referer,
-                            UsedInPages = new List<Page> { page },
+                            UsedInPages = new List<Page>(),
                             Values = new List<string> { temp1, temp2 },
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
@@ -354,7 +354,7 @@ namespace Abstracta.FiddlerSessionComparer
                 var parameter = new Parameter
                 {
                     ExtractedFromPage = page.Referer,
-                    UsedInPages = new List<Page> { page },
+                    UsedInPages = new List<Page>(),
                     Values = new List<string> { difference.Value1, difference.Value2 },
                     VariableName = difference.Key,
                     ExpressionPrefix = difference.Key,

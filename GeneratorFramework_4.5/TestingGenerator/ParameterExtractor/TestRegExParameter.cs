@@ -2,8 +2,8 @@
 {
     internal class TestRegExParameter : AbstractGenerator.ParameterExtractor.AbstractRegExParameter
     {
-        internal TestRegExParameter(string varibleName, string regularExpression, string valueToReplace, string description)
-            : base(varibleName, regularExpression, valueToReplace, description)
+        internal TestRegExParameter(string varibleName, string regularExpression, string group, string valueToReplace, string description)
+            : base(varibleName, regularExpression, group, valueToReplace, description)
         {
         }
 

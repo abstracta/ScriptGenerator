@@ -13,9 +13,9 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 {
     internal class Step : AbstractStep
     {
-        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string varName, string expression, string valueToReplace, string description)
+        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string varName, string expression, string group, string valueToReplace, string description)
         {
-            return new JMeterRegExParameter(varName, expression, valueToReplace, description);
+            return new JMeterRegExParameter(varName, expression, group, valueToReplace, description);
         }
 
         protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page)

@@ -16,6 +16,14 @@ Future work:
 
 
 
+----------------------------------------------------------------------------
+
+Version 2014.07.21
+- Change the RegExpExtractor concept. Now it's a SourceValue with multiple implementations
+- Fix some issues
+
+----------------------------------------------------------------------------
+
 Version 2014.07.21
 - Fix some issues
 
