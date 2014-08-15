@@ -62,6 +62,7 @@ namespace Abstracta.Generators.Framework
 
             if (performanceScript == null)
             {
+                // todo: manage datapools of fiddler extension
                 string[] datapoolsPath = { };
                 performanceScript = GenerateXML(fiddlerSessions[0], ScriptName, datapoolsPath);
             }
@@ -107,8 +108,6 @@ namespace Abstracta.Generators.Framework
             // add dataPools to generator
             var dataPools = ScriptWrapper.GetDataPools();
             generator.AddDataPools(dataPools, DataPoolsPath);
-
-            
 
             // add each command as a step in the generator
             var commands = ScriptWrapper.GetCommands();

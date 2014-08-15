@@ -66,7 +66,7 @@ namespace Abstracta.FiddlerSessionComparer
                 var htmlTag = GetTagThatContainsValue(body, Values[0]);
                 if (htmlTag == null)
                 {
-                    // todo: need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
+                    // need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
                     SourceOfValue = new RegExpExtractor(1, "", "1", "1");
                     Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
                     return;
@@ -174,8 +174,6 @@ namespace Abstracta.FiddlerSessionComparer
                 return VariableType.HTML;
             }
 
-            // checks if parameters are in a ToStringed JSON format
-            // todo: por ahora no van a venir params de este tipo, pero cuando se implemente en FiddlerSessionComparer.GetParamsFromJSON hay que contemplarlo
             if (body[pos - 1] == '\"' && body[pos - 2] == '\\')
             {
                 return VariableType.ToStringedJSON;

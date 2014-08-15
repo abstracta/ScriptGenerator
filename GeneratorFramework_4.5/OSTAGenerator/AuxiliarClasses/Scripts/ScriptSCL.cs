@@ -117,7 +117,7 @@ namespace Abstracta.Generators.Framework.OSTAGenerator.AuxiliarClasses.Scripts
 
         //public void AddValidation(string toValidate, string stepName)
         //{
-        //    //TODO agregar la rutina a los includes validateText.inc
+        //    //agregar la rutina a los includes validateText.inc
         //    // como se hace? se invoca luego del llamado al pedido sobre el cual se quiere validar
         //    //o sea, antes de los pedidos secundarios y después del follow redirects
 

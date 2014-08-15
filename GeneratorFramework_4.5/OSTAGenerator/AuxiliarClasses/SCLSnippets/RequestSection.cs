@@ -410,7 +410,7 @@ namespace Abstracta.Generators.Framework.OSTAGenerator.AuxiliarClasses.SCLSnippe
                 if (!element.Success) continue;
 
                 Script.AddVariable(par.Value.Var);
-                string encoded = System.Web.HttpUtility.HtmlEncode(par.Value.HTMLElementValue);
+                var encoded = System.Web.HttpUtility.HtmlEncode(par.Value.HTMLElementValue);
                 //TODO: esto hay que pasarlo a regex
 
                 body = body.Replace(element.Value + "=" + encoded,

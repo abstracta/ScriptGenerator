@@ -187,6 +187,7 @@ namespace Abstracta.FiddlerSessionComparer
                     // if i2 reaches the end, inc i1
                     if (i2 == s2Count)
                     {
+                        // todo Create an "empty" page, a page without differences
                         i2 = 0;
                         i1++;
                     }

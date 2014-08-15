@@ -31,6 +31,7 @@ namespace Abstracta.FiddlerSessionComparer
                     var replaceValue = FiddlerSessionComparer.EscapeString(parameter.SourceOfValue.ReplaceValue);
                     var replaceWith = FiddlerSessionComparer.EscapeString(parameter.SourceOfValue.ReplaceWith);
 
+                    // this is specific for JMeter, todo: decouple this 
                     var variable = "${__urlencode(${" + parameter.ExpressionPrefix + "})}";
                     replaceWith = replaceWith.Replace(Parameter.EscapedDefaultVariableName, variable);
 

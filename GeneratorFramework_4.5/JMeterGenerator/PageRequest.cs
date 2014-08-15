@@ -296,7 +296,6 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             // adding parameters extractor detected when comparing several fiddler sessions
             if (page != null)
             {
-                // todo review transformation of parameters
                 var parms = new List<JMeterRegExParameter>();
                 var constants = new List<JMeterConstant>();
 
