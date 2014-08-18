@@ -22,6 +22,10 @@ namespace Abstracta.FiddlerSessionComparer
 
         public static Session[] GetSessionsFromFile(string fiddlerSessionsFileName)
         {
+            /// <summary>
+            /// Retorn the session from saz file
+            /// </summary>
+           
             if (!File.Exists(fiddlerSessionsFileName))
             {
                 throw new Exception("File doesn't exists: " + fiddlerSessionsFileName);
