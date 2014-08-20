@@ -20,12 +20,11 @@ namespace Abstracta.FiddlerSessionComparer
 
         # region public static methods
 
+        /// <summary>
+        /// Retorn the session from saz file
+        /// </summary>
         public static Session[] GetSessionsFromFile(string fiddlerSessionsFileName)
-        {
-            /// <summary>
-            /// Retorn the session from saz file
-            /// </summary>
-           
+        {          
             if (!File.Exists(fiddlerSessionsFileName))
             {
                 throw new Exception("File doesn't exists: " + fiddlerSessionsFileName);
@@ -40,6 +39,11 @@ namespace Abstracta.FiddlerSessionComparer
             return sessions;
         }
 
+        /// <summary>
+        /// Retorn a list of primary sessions without images css, png, gif, js, etc.
+        /// Extenssion is the list of extenssions who are primary request (.html .jsp between others).
+        /// Primary request are those that are not with static content.
+        /// </summary>
         public static Session[] CleanSessions(IEnumerable<Session> sessions, string[] extenssions)
         {
             var sessionsTemp = new List<Session>();
@@ -74,14 +78,20 @@ namespace Abstracta.FiddlerSessionComparer
 
         # endregion
 
+        /// <summary>
+        /// Convert the fiddler sessions files received as parameters, in session type variables and load them.
+        /// </summary>
         public void Load(string fiddlerSessionsFile1, string fiddlerSessionsFile2, string[] extenssions)
-        {
+        {            
             var sessions1 = GetSessionsFromFile(fiddlerSessionsFile1);
             var sessions2 = GetSessionsFromFile(fiddlerSessionsFile2);
 
             Load(sessions1, sessions2, extenssions);
         }
-        
+
+        /// <summary>
+        /// Load the sessions received as parameters applying the CleanSessions function previously.
+        /// </summary>
         public void Load(Session[] sessions1, Session[] sessions2, string[] extenssions = null)
         {
             _sessions1 = CleanSessions(sessions1, extenssions);
@@ -191,7 +201,9 @@ namespace Abstracta.FiddlerSessionComparer
                     // if i2 reaches the end, inc i1
                     if (i2 == s2Count)
                     {
-                        // todo Create an "empty" page, a page without differences
+                        // Create an "empty" page, a page without differences
+                        rootPage.CreateAndInsertPage(_sessions1[i1]);
+                        
                         i2 = 0;
                         i1++;
                     }
@@ -256,17 +268,7 @@ namespace Abstracta.FiddlerSessionComparer
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
-            #region 
-            // todo create a function for this
-            var expressionPrefix = GetPathFromURL(s1.fullUrl);
-            var index = expressionPrefix.Length - 1;
-            for (; index > 0; index--)
-            {
-                if (expressionPrefix[index] == '/') break;
-            }
-
-            expressionPrefix = expressionPrefix.Substring(index + 1);
-            # endregion
+            var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
 
             string varName;
             Parameter parameter;
@@ -543,6 +545,18 @@ namespace Abstracta.FiddlerSessionComparer
         {
             var temp1 = url.Split('?');
             return temp1.Length == 1 ? null : temp1[1];
+        }
+
+        private static string GetProgramFromURL(string url)
+        {
+            var index = url.Length - 1;
+            for (; index > 0; index--)
+            {
+                if (url[index] == '/') break;
+            }
+
+            url = url.Substring(index + 1);
+            return url;
         }
 
         # endregion
