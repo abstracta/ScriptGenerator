@@ -23,6 +23,8 @@ namespace Abstracta.FiddlerSessionComparer
         /// <summary>
         /// Retorn the session from saz file
         /// </summary>
+        /// <param name="fiddlerSessionsFileName">fiddler session File Name</param>
+        /// <returns>List of requests</returns>
         public static Session[] GetSessionsFromFile(string fiddlerSessionsFileName)
         {          
             if (!File.Exists(fiddlerSessionsFileName))
@@ -41,9 +43,11 @@ namespace Abstracta.FiddlerSessionComparer
 
         /// <summary>
         /// Retorn a list of primary sessions without images css, png, gif, js, etc.
-        /// Extenssion is the list of extenssions who are primary request (.html .jsp between others).
         /// Primary request are those that are not with static content.
         /// </summary>
+        /// <param name="sessions">List of requests we want to filter.</param>
+        /// <param name="extenssions">list of extenssions who are primary request (.html .jsp between others).</param>
+        /// <returns>List of primary requests</returns>
         public static Session[] CleanSessions(IEnumerable<Session> sessions, string[] extenssions)
         {
             var sessionsTemp = new List<Session>();
@@ -92,6 +96,9 @@ namespace Abstracta.FiddlerSessionComparer
         /// <summary>
         /// Load the sessions received as parameters applying the CleanSessions function previously.
         /// </summary>
+        /// <param name="sessions1">First session to load</param>
+        /// <param name="sessions2">Second session to load</param>
+        /// <param name="extenssions">List of primary requests</param>
         public void Load(Session[] sessions1, Session[] sessions2, string[] extenssions = null)
         {
             _sessions1 = CleanSessions(sessions1, extenssions);
@@ -166,6 +173,10 @@ namespace Abstracta.FiddlerSessionComparer
             return res;
         }
 
+        /// <summary>
+        /// Compare all the request from the _session1 with all the request from _session2
+        /// </summary>
+        /// <returns>Depending on the value of the variable CompareResultType type, returns a page with the result of the comparison.</returns>
         public Page CompareFull()
         {
             VerifySessionsLoaded();
@@ -214,6 +225,11 @@ namespace Abstracta.FiddlerSessionComparer
             return _resultOfComparizon;
         }
 
+        /// <summary>
+        /// Compare the existing sessions with others received as parameters.
+        /// </summary>
+        /// <param name="sessions">List of sessions to compare</param>
+        /// <returns>Depending on the value of the variable CompareResultType type, returns a page with the result of the comparison.</returns>
         public Page CompareFull(Session[] sessions)
         {
             // todo verify sessions loaded and compared -> if _resultOfComparizon == null, compare sessions before
