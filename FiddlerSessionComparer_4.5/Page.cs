@@ -15,6 +15,9 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _bodyOfPost;
 
+        /// <summary>
+        /// parameterize the body of a post request.
+        /// </summary>
         public string Body
         {
             get
@@ -63,6 +66,9 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _url;
 
+        /// <summary>
+        /// parameterize the url of a request
+        /// </summary>
         public string FullURL
         {
             get
@@ -110,6 +116,10 @@ namespace Abstracta.FiddlerSessionComparer
             _parametersToExtract = new List<Parameter>();
         }
 
+        /// <summary>
+        /// Add a parameter in the list of parameters to use
+        /// </summary>
+        /// <param name="parameter">Parameter to add</param>
         public void AddParameterToUse(Parameter parameter)
         {
             if (parameter == null)
@@ -122,7 +132,8 @@ namespace Abstracta.FiddlerSessionComparer
                 Utils.Logger.GetInstance().Log("ERROR: parameter.SourceOfValue == null in AddParameterToUse: " + parameter);
             }
 
-            // When the Page has more than one follower, and two of them use the same variable, they may be repeated
+            // Problem: When the Page has more than one follower, and two of them use the same variable, they may be repeated
+            // Solution: Add only if the parameter is not in the list.
             if (_parametersToUse.All(p => p.ExpressionPrefix != parameter.ExpressionPrefix))
             {
                 _parametersToUse.Add(parameter);
