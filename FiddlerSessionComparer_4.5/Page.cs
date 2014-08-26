@@ -148,6 +148,7 @@ namespace Abstracta.FiddlerSessionComparer
                 return null;
             }
 
+
             if (parameter.ParameterTarget == UseToReplaceIn.Body)
             {
                 # region Parameter used in a Body of a POST
@@ -226,6 +227,12 @@ namespace Abstracta.FiddlerSessionComparer
             return parameter;
         }
 
+        /// <summary>
+        /// Retorn the referer page of the actual page
+        /// </summary>
+        /// <param name="referer">referer uri</param>
+        /// <param name="childId">child fiddler id</param>
+        /// <returns>Referer page</returns>
         public Page FindRefererPage(string referer, int childId)
         {
             // compares the current's page uri with the referers uri, and makes sure the referal page is prior to the child by comparing fiddler ids
@@ -235,6 +242,11 @@ namespace Abstracta.FiddlerSessionComparer
                                   .FirstOrDefault(result => result != null);
         }
 
+        /// <summary>
+        /// Return the Page of the request received as parameter.
+        /// </summary>
+        /// <param name="httpReq">Request</param>
+        /// <returns>Page of request</returns>
         public Page FindSubPage(Session httpReq)
         {
             return httpReq.id == Id
@@ -242,6 +254,11 @@ namespace Abstracta.FiddlerSessionComparer
                 : Followers.Select(page => page.FindSubPage(httpReq)).FirstOrDefault(tmp => tmp != null);
         }
 
+        /// <summary>
+        /// Create a Page with the session attributes and insert them in the referer page follower list. 
+        /// </summary>
+        /// <param name="session">Session</param>
+        /// <returns>page created</returns>
         public Page CreateAndInsertPage(Session session)
         {
             var id = session.id;

@@ -45,6 +45,10 @@ namespace Abstracta.FiddlerSessionComparer
                    "}";
         }
 
+        /// <summary>
+        /// Create a regular expression for URL parameters.
+        /// </summary>
+        /// <param name="body">Character string to filter the regular expression</param>
         public void SetRegularExpressionOfParameterFromURL(string body)
         {
             /* Options:
@@ -106,6 +110,10 @@ namespace Abstracta.FiddlerSessionComparer
             SourceOfValue = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
         }
 
+        /// <summary>
+        /// Create a regular expression for body parameters.
+        /// </summary>
+        /// <param name="body">Character string to filter the regular expression</param>
         public void SetRegularExpressionOfParameterFromBody(string body)
         {
             var bodyCopy = body;
@@ -123,10 +131,17 @@ namespace Abstracta.FiddlerSessionComparer
             SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
         }
 
+        /// <summary>
+        /// Return the value of truth of ExpressionPrefix is contained in htmlResponse
+        /// </summary>
+        /// <param name="htmlResponse">Character string where i want to search ExpressionPrefix</param>
+        /// <returns>Return true if ExpressionPrefix is contained in htmlResponse or false otherwise</returns>
         public bool IsContainedInHTML(string htmlResponse)
         {
             return IndexOfParameterInHTML(htmlResponse, ExpressionPrefix) >= 0;
         }
+
+        # region private methods
 
         private ParameterSoure GetRegExp(string body, int pos, string parameterName, string value)
         {
@@ -171,7 +186,14 @@ namespace Abstracta.FiddlerSessionComparer
             var htmlTag = GetTagThatContainsValue(body, value);
             if (htmlTag != null && htmlTag.Contains(key))
             {
-                return VariableType.HTML;
+                if ((body[pos - 1] == '\"' && body[pos + key.Length] == '\"') && (body[pos + key.Length + 2] == '\"'))
+                {
+                    return VariableType.JSONString;
+                }
+                else
+                {
+                    return VariableType.HTML;
+                }
             }
 
             if (body[pos - 1] == '\"' && body[pos - 2] == '\\')
@@ -272,5 +294,7 @@ namespace Abstracta.FiddlerSessionComparer
 
             return offset + pos;
         }
+
+        #endregion
     }
 }
