@@ -32,6 +32,13 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             MyStep = myStep;
         }
 
+        /// <summary>
+        /// Creates a variable of type AbstractFollowRedirect, add in the FollowRedirect list and return de variable.
+        /// </summary>
+        /// <param name="request">Session of request</param>
+        /// <param name="rType">Redirect Type</param>
+        /// <param name="page">Page of request</param>
+        /// <returns>Returns the variable created</returns>
         internal AbstractFollowRedirect AddFollowRedirect(Session request, RedirectType rType, Page page)
         {
             var redirect = new AbstractFollowRedirect(request, rType, page);
@@ -40,11 +47,19 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             return redirect;
         }
 
+        /// <summary>
+        /// Adds the session received as parameter in SecondaryRequest list.
+        /// </summary>
+        /// <param name="httpReq">Session to add</param>
         internal void AddSecondaryRequest(Session httpReq)
         {
             SecondaryRequests.Add(httpReq);
         }
 
+        /// <summary>
+        /// Returns the last Primary request of the FollowRedirects list
+        /// </summary>
+        /// <returns>Last session of the list</returns>
         internal Session GetLastPrimaryRequest()
         {
             return FollowRedirects == null || FollowRedirects.Count == 0
@@ -52,11 +67,20 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                        : FollowRedirects[FollowRedirects.Count - 1].FiddlerSession;
         }
 
+        /// <summary>
+        /// Returns if a request is a follow redirect.
+        /// </summary>
+        /// <param name="url">URL of request</param>
+        /// <returns>Returns true if the request belongs to FollowRedirects list or false otherwise</returns>
         public bool IsUrlInFollowRedirectChain(string url)
         {
             return url == RefererURL || FollowRedirects.Any(followRedirect => followRedirect.FiddlerSession.fullUrl == url);
         }
 
+        /// <summary>
+        /// Adds the validation received as parameter in the validations list.
+        /// </summary>
+        /// <param name="val">Validation to add</param>
         public void AddValidation(AbstractValidation val)
         {
             if (Validations.Count == 1 && Validations[0] is DefaultValidation)
