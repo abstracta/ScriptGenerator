@@ -21,7 +21,7 @@ namespace Abstracta.FiddlerSessionComparer
         # region public static methods
 
         /// <summary>
-        /// Retorn the session from saz file
+        /// Returns the session from saz file
         /// </summary>
         /// <param name="fiddlerSessionsFileName">fiddler session File Name</param>
         /// <returns>List of requests</returns>
@@ -42,7 +42,7 @@ namespace Abstracta.FiddlerSessionComparer
         }
 
         /// <summary>
-        /// Retorn a list of primary sessions without images css, png, gif, js, etc.
+        /// Returns a list of primary sessions without images css, png, gif, js, etc.
         /// Primary request are those that are not with static content.
         /// </summary>
         /// <param name="sessions">List of requests we want to filter.</param>
@@ -83,7 +83,7 @@ namespace Abstracta.FiddlerSessionComparer
         # endregion
 
         /// <summary>
-        /// Convert the fiddler sessions files received as parameters, in session type variables and load them.
+        /// Converts the fiddler sessions files received as parameters, in session type variables and load them.
         /// </summary>
         public void Load(string fiddlerSessionsFile1, string fiddlerSessionsFile2, string[] extenssions)
         {            
