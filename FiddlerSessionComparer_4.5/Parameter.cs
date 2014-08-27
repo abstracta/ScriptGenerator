@@ -132,10 +132,10 @@ namespace Abstracta.FiddlerSessionComparer
         }
 
         /// <summary>
-        /// Return the value of truth of ExpressionPrefix is contained in htmlResponse
+        /// Returns the value of truth of ExpressionPrefix is contained in htmlResponse
         /// </summary>
         /// <param name="htmlResponse">Character string where i want to search ExpressionPrefix</param>
-        /// <returns>Return true if ExpressionPrefix is contained in htmlResponse or false otherwise</returns>
+        /// <returns>Returns true if ExpressionPrefix is contained in htmlResponse or false otherwise</returns>
         public bool IsContainedInHTML(string htmlResponse)
         {
             return IndexOfParameterInHTML(htmlResponse, ExpressionPrefix) >= 0;
