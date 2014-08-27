@@ -228,7 +228,7 @@ namespace Abstracta.FiddlerSessionComparer
         }
 
         /// <summary>
-        /// Retorn the referer page of the actual page
+        /// Returns the referer page of the actual page
         /// </summary>
         /// <param name="referer">referer uri</param>
         /// <param name="childId">child fiddler id</param>
@@ -243,7 +243,7 @@ namespace Abstracta.FiddlerSessionComparer
         }
 
         /// <summary>
-        /// Return the Page of the request received as parameter.
+        /// Returns the Page of the request received as parameter.
         /// </summary>
         /// <param name="httpReq">Request</param>
         /// <returns>Page of request</returns>
