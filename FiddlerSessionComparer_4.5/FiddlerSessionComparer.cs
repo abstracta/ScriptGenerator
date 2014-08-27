@@ -284,6 +284,10 @@ namespace Abstracta.FiddlerSessionComparer
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
+            // todo: if applications is genexus
+            temp1 = RemoveUnusedParameters(temp1);
+            temp2 = RemoveUnusedParameters(temp2);
+
             var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
 
             string varName;
@@ -352,6 +356,18 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             return page;
+        }
+
+        private static string RemoveUnusedParameters(string parameters)
+        {
+            if (parameters == null)
+            {
+                return null;
+            }
+
+            var indexOf = parameters.IndexOf(",gx-no-cache", StringComparison.Ordinal);
+
+            return indexOf == -1 ? parameters : parameters.Substring(0, parameters.Length - indexOf);
         }
 
         private static void CompareParametersInPOST(Session s1, Session s2, Page rootPage, ComparerResultType type)
@@ -490,6 +506,11 @@ namespace Abstracta.FiddlerSessionComparer
 
         private static void GetParamsFromJSON(string fatherVariableName, string value, IDictionary<string, string> result)
         {
+            if (value.Trim() == string.Empty || value == "\"\"")
+            {
+                return;
+            }
+
             var json = HttpUtility.UrlDecode(value);
 
             // to support .NET 3.5 can't use dynamics

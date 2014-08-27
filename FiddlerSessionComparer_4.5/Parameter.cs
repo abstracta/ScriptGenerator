@@ -152,7 +152,7 @@ namespace Abstracta.FiddlerSessionComparer
                     // holaquetal="1"&jhoholaquetal="2"&holaquetal="3"&hholaquetal="4"&holaquetal="5"
                     // matches "1", "3", "5"
                     // http://stackoverflow.com/questions/2552428/regex-use-start-of-line-end-of-line-signs-or-in-different-context
-                    return new RegExpExtractor(1, "\\b" + parameterName + "=([^&$]*)",
+                    return new RegExpExtractor(1, /*"\\b" + */parameterName + "=([^&$]*)",
                                                parameterName + "=" + value,
                                                parameterName + "=" + DefaultVariableName + "");
                 case VariableType.JSONString:
@@ -227,7 +227,7 @@ namespace Abstracta.FiddlerSessionComparer
 
         private static bool IsHTMLResponse(string html)
         {
-            return html.Trim().StartsWith("<!DOCTYPE html>");
+            return html.Trim().StartsWith("<!DOCTYPE html");
         }
 
         private static bool IsJSONResponse(string html)
