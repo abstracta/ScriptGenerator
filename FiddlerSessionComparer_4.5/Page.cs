@@ -15,7 +15,7 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _bodyOfPost;
 
-        /// <summary>
+		/// <summary>
         /// parameterize the body of a post request.
         /// </summary>
         public string Body
@@ -38,7 +38,7 @@ namespace Abstracta.FiddlerSessionComparer
                     var variable = "${__urlencode(${" + parameter.ExpressionPrefix + "})}";
                     replaceWith = replaceWith.Replace(Parameter.EscapedDefaultVariableName, variable);
 
-                    // only replace strings larger or equal than 5 chars
+					// only replace strings larger or equal than 5 chars
                     if (_bodyOfPost.Contains(replaceValue) && replaceValue.Length >= 5)
                     {
                         _bodyOfPost = _bodyOfPost.Replace(replaceValue, replaceWith);
@@ -47,8 +47,9 @@ namespace Abstracta.FiddlerSessionComparer
                     {
                         replaceValue = parameter.SourceOfValue.ReplaceValue;
                         replaceWith = parameter.SourceOfValue.ReplaceWith.Replace(Parameter.DefaultVariableName, variable);
+						
 
-                        // only replace strings larger or equal than 5 chars
+						// only replace strings larger or equal than 5 chars
                         if (_bodyOfPost.Contains(replaceValue) && replaceValue.Length >= 5)
                         {
                             _bodyOfPost = _bodyOfPost.Replace(replaceValue, replaceWith);
@@ -68,7 +69,9 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _url;
 
-        /// <summary>
+        public string HTTPMethod {get; set;}
+
+		/// <summary>
         /// parameterize the url of a request
         /// </summary>
         public string FullURL
@@ -104,11 +107,12 @@ namespace Abstracta.FiddlerSessionComparer
         
         public List<Page> Followers { get; set; }
 
-        public Page(Page referer, string uri, string body, string htmlResponse)
+        public Page(Page referer, string uri, string body, string htmlResponse, string HttpMethod)
         {
             Referer = referer;
             Uri = uri;
             _url = uri;
+            HTTPMethod = HttpMethod;
             Body = body;
             HTTPResponse = htmlResponse;
 
@@ -118,7 +122,7 @@ namespace Abstracta.FiddlerSessionComparer
             _parametersToExtract = new List<Parameter>();
         }
 
-        /// <summary>
+		/// <summary>
         /// Add a parameter in the list of parameters to use
         /// </summary>
         /// <param name="parameter">Parameter to add</param>
@@ -150,6 +154,7 @@ namespace Abstracta.FiddlerSessionComparer
                 return null;
             }
 
+			
 
             if (parameter.ParameterTarget == UseToReplaceIn.Body)
             {
@@ -229,7 +234,7 @@ namespace Abstracta.FiddlerSessionComparer
             return parameter;
         }
 
-        /// <summary>
+		/// <summary>
         /// Returns the referer page of the actual page
         /// </summary>
         /// <param name="referer">referer uri</param>
@@ -244,7 +249,7 @@ namespace Abstracta.FiddlerSessionComparer
                                   .FirstOrDefault(result => result != null);
         }
 
-        /// <summary>
+		/// <summary>
         /// Returns the Page of the request received as parameter.
         /// </summary>
         /// <param name="httpReq">Request</param>
@@ -256,7 +261,7 @@ namespace Abstracta.FiddlerSessionComparer
                 : Followers.Select(page => page.FindSubPage(httpReq)).FirstOrDefault(tmp => tmp != null);
         }
 
-        /// <summary>
+		/// <summary>
         /// Create a Page with the session attributes and insert them in the referer page follower list. 
         /// </summary>
         /// <param name="session">Session</param>
@@ -267,6 +272,7 @@ namespace Abstracta.FiddlerSessionComparer
             var uri = session.fullUrl;
             var urlReferer = session.oRequest.headers["Referer"];
             var referer = FindRefererPage(urlReferer, id);
+            var httpMethod = session.oRequest.headers.HTTPMethod;
 
             if (referer == null)
             {
@@ -277,7 +283,7 @@ namespace Abstracta.FiddlerSessionComparer
             var body = session.HTTPMethodIs("POST") ? session.GetRequestBodyAsString() : "";
             var htmlResponse = session.GetResponseBodyAsString();
 
-            var result = new Page(referer, uri, body, htmlResponse)
+            var result = new Page(referer, uri, body, htmlResponse, httpMethod)
             {
                 Id = id,
                 RefererURL = urlReferer,
@@ -306,6 +312,28 @@ namespace Abstracta.FiddlerSessionComparer
                       regExTab + String.Join("\n", _parametersToExtract.Select(p => p.ToString()).ToArray()) + "\n";
 
             return Followers.Aggregate(res, (current, follower) => current + follower.ToString(tab + "\t", printReferer));
+        }
+
+        public SortedList<int, Page> getSubPagesList()
+            //Make a sorted list of all the Pages of the tree
+        {
+            SortedList<int, Page> slist = new SortedList<int, Page>();
+
+            AddFollowersToList(this, slist);
+                        
+            return slist;
+        }
+
+        private void AddFollowersToList(Page pag, SortedList<int, Page> list)
+        {
+            foreach (Page p in pag.Followers)
+            {
+                list.Add(p.Id, p);
+                if (p.Followers.Count > 0)
+                {
+                    AddFollowersToList(p, list);
+                }
+            }
         }
     }
 }

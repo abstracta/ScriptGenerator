@@ -14,19 +14,19 @@ namespace Abstracta.FiddlerSessionComparer
     {
         private static readonly string[] ParamNamesWithJSONContent = new[] { "GXState" };
 
-        private Session[] _sessions1, _sessions2;
+        private Session[] _sessions1, _sessions2, _sessions3;
 
         private Page _resultOfComparizon;
 
         # region public static methods
 
-        /// <summary>
+		/// <summary>
         /// Returns the session from saz file
         /// </summary>
         /// <param name="fiddlerSessionsFileName">fiddler session File Name</param>
         /// <returns>List of requests</returns>
         public static Session[] GetSessionsFromFile(string fiddlerSessionsFileName)
-        {          
+        {
             if (!File.Exists(fiddlerSessionsFileName))
             {
                 throw new Exception("File doesn't exists: " + fiddlerSessionsFileName);
@@ -41,7 +41,17 @@ namespace Abstracta.FiddlerSessionComparer
             return sessions;
         }
 
-        /// <summary>
+        //Returns session 3 to 
+		public Session[] getSession3(string fiddlerSessionsFileName)
+        {
+            var session = GetSessionsFromFile(fiddlerSessionsFileName);
+
+            session = CleanSessions(session,null);
+
+            return session;
+        }
+
+		/// <summary>
         /// Returns a list of primary sessions without images css, png, gif, js, etc.
         /// Primary request are those that are not with static content.
         /// </summary>
@@ -64,7 +74,7 @@ namespace Abstracta.FiddlerSessionComparer
             // ReSharper restore LoopCanBeConvertedToQuery
             return sessionsTemp.ToArray();
         }
-
+        
         public static string Decode(string s)
         {
             return HttpUtility.HtmlDecode(s);
@@ -82,18 +92,18 @@ namespace Abstracta.FiddlerSessionComparer
 
         # endregion
 
-        /// <summary>
+		/// <summary>
         /// Converts the fiddler sessions files received as parameters, in session type variables and load them.
         /// </summary>
         public void Load(string fiddlerSessionsFile1, string fiddlerSessionsFile2, string[] extenssions)
-        {            
+        {
             var sessions1 = GetSessionsFromFile(fiddlerSessionsFile1);
             var sessions2 = GetSessionsFromFile(fiddlerSessionsFile2);
 
             Load(sessions1, sessions2, extenssions);
         }
-
-        /// <summary>
+        
+		/// <summary>
         /// Load the sessions received as parameters applying the CleanSessions function previously.
         /// </summary>
         /// <param name="sessions1">First session to load</param>
@@ -173,7 +183,7 @@ namespace Abstracta.FiddlerSessionComparer
             return res;
         }
 
-        /// <summary>
+		/// <summary>
         /// Compare all the request from the _session1 with all the request from _session2
         /// </summary>
         /// <returns>Depending on the value of the variable CompareResultType type, returns a page with the result of the comparison.</returns>
@@ -181,7 +191,7 @@ namespace Abstracta.FiddlerSessionComparer
         {
             VerifySessionsLoaded();
 
-            var rootPage = new Page(null, "", "", "");
+            var rootPage = new Page(null, "", "", "", "");
 
             var s1Count = _sessions1.Count();
             var s2Count = _sessions2.Count();
@@ -213,8 +223,7 @@ namespace Abstracta.FiddlerSessionComparer
                     if (i2 == s2Count)
                     {
                         // Create an "empty" page, a page without differences
-                        rootPage.CreateAndInsertPage(_sessions1[i1]);
-                        
+						rootPage.CreateAndInsertPage(_sessions1[i1]);
                         i2 = 0;
                         i1++;
                     }
@@ -225,18 +234,73 @@ namespace Abstracta.FiddlerSessionComparer
             return _resultOfComparizon;
         }
 
-        /// <summary>
+		/// <summary>
         /// Compare the existing sessions with others received as parameters.
         /// </summary>
         /// <param name="sessions">List of sessions to compare</param>
         /// <returns>Depending on the value of the variable CompareResultType type, returns a page with the result of the comparison.</returns>
         public Page CompareFull(Session[] sessions)
         {
-            // todo verify sessions loaded and compared -> if _resultOfComparizon == null, compare sessions before
+            //verify sessions loaded and compared
             VerifySessionsLoaded();
 
+            var sCount = sessions.Count();
+
+            Session[] _sessions3 = new Session[sCount];
+            for (int i1 = 0; i1 < sCount; )
+            {
+                _sessions3[i1] = sessions[i1];
+                i1++;
+            }
+            
+            
+            //if _resultOfComparizon == null, compare sessions before
+            if (_resultOfComparizon == null)
+            {
+                _resultOfComparizon = CompareFull();
+            }
+
+            //Make a sorted list of all Pages
+            SortedList<int, Page> pageList = new SortedList<int, Page>();
+            pageList = _resultOfComparizon.getSubPagesList();
+
             // compares _resultOfComparizon, against sessions
-            throw new NotImplementedException();
+            
+            var pTCount = pageList.Count();
+            
+            for (int i1 = 0, i2 = 0; i1 < sCount && i2 < pTCount; )
+            {
+                var s1 = _sessions3[i1];
+                var s2 = pageList.Values[i2];
+
+                if (SameURL(s1, s2)) 
+                {
+                    // mark those that have a match as null
+                    _sessions3[i1] = null;
+                   
+                    Utils.Logger.GetInstance().Log("Comparing session " + s1.id + " with page " + s2.Id);
+                    CompareSessionVsPage(s2, s1, _resultOfComparizon);
+
+                    // i2 starts always from the beginning
+                    i2 = 0;
+                    i1++;
+                }
+                else
+                {
+                    // inc index of array i2
+                    i2++;
+
+                    // if i2 reaches the end, inc i1
+                    if (i2 == pTCount)
+                    {
+                        // todo Create an "empty" page, a page without differences
+                        i2 = 0;
+                        i1++;
+                    }
+                }
+            }
+
+            return _resultOfComparizon;
         }
 
         # region private methods
@@ -271,7 +335,7 @@ namespace Abstracta.FiddlerSessionComparer
                     break;
             }
         }
-
+        
         private static Page CompareParametersInGET(Session s1, Session s2, Page rootPage, ComparerResultType type)
         {
             if (s1 == null || s2 == null)
@@ -284,9 +348,11 @@ namespace Abstracta.FiddlerSessionComparer
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
-            // todo: if applications is genexus
+			// todo: if applications is genexus
             temp1 = RemoveUnusedParameters(temp1);
             temp2 = RemoveUnusedParameters(temp2);
+
+
 
             var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
 
@@ -357,8 +423,8 @@ namespace Abstracta.FiddlerSessionComparer
 
             return page;
         }
-
-        private static string RemoveUnusedParameters(string parameters)
+        
+		private static string RemoveUnusedParameters(string parameters)
         {
             if (parameters == null)
             {
@@ -369,7 +435,6 @@ namespace Abstracta.FiddlerSessionComparer
 
             return indexOf == -1 ? parameters : parameters.Substring(0, parameters.Length - indexOf);
         }
-
         private static void CompareParametersInPOST(Session s1, Session s2, Page rootPage, ComparerResultType type)
         {
             if (s1 == null || s2 == null)
@@ -401,6 +466,7 @@ namespace Abstracta.FiddlerSessionComparer
                 };
                 
                 var p2 = page.Referer.AddParameterToExtract(parameter);
+
                 if (parameter == p2)
                 {
                     p2.UsedInPages = new List<Page>();
@@ -408,6 +474,188 @@ namespace Abstracta.FiddlerSessionComparer
 
                 // adds p2 when it isn't null, otherwise, adds parameter
                 page.AddParameterToUse(p2 ?? parameter);
+            }
+        }
+
+        private static void CompareSessionVsPage(Page p2, Session s1, Page rootPage)
+        {
+            const ComparerResultType type = ComparerResultType.HideNullOrEquals;
+
+            switch (s1.oRequest.headers.HTTPMethod.ToLower())
+            {
+                case "get":
+                    // resultLog.Append("SAME GET ? \n\t\t" + s1.fullUrl + "\n\t\t" + s2.fullUrl);
+                    CompareSessionVsPageInGET(p2, s1, rootPage, type);
+                    break;
+
+                case "post":
+                    // resultLog.Append("SAME POST ? \n\t\t" + s1.fullUrl + "\n\t\t" + s2.fullUrl);
+                    CompareSessionVsPageInPOST(p2, s1, rootPage, type);
+                    break;
+            }
+        }
+
+        private static Page CompareSessionVsPageInGET(Page p2, Session s1, Page rootPage, ComparerResultType type)
+        {
+            if (s1 == null || p2 == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            var temp1 = GetParametersFromURL(s1.fullUrl);
+            var temp2 = GetParametersFromURL(p2.FullURL);
+
+            #region
+            // todo create a function for this
+            var expressionPrefix = GetPathFromURL(s1.fullUrl);
+            var index = expressionPrefix.Length - 1;
+            for (; index > 0; index--)
+            {
+                if (expressionPrefix[index] == '/') break;
+            }
+
+            expressionPrefix = expressionPrefix.Substring(index + 1);
+            # endregion
+
+            string varName;
+            Parameter parameter;      
+            switch (type)
+            {
+                // parametrize allways 
+                case ComparerResultType.ShowAll:
+                    if (isParametrized(temp2))
+                        {
+                            Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
+                        }
+                        else
+                        {
+                            varName = NameFactory.GetInstance().GetNewName();
+
+                            parameter = new Parameter
+                            {
+                                ExtractedFromPage = p2.Referer,
+                                UsedInPages = new List<Page>(),
+                                Values = new List<string> { temp1, temp2 },
+                                VariableName = varName,
+                                ExpressionPrefix = expressionPrefix,
+                                ParameterTarget = UseToReplaceIn.Url,
+                            };
+
+                            parameter = p2.Referer.AddParameterToExtract(parameter);
+                            p2.AddParameterToUse(parameter);
+                        }
+                                        
+                    break;
+
+                // parametrize when different
+                case ComparerResultType.HideEquals:
+                    if (temp1 != temp2)
+                    {                        
+                            if (isParametrized(temp2))
+                            {
+                                Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
+                            }
+                            else
+                            {
+                                varName = NameFactory.GetInstance().GetNewName();
+
+                                parameter = new Parameter
+                                {
+                                    ExtractedFromPage = p2.Referer,
+                                    UsedInPages = new List<Page>(),
+                                    Values = new List<string> { temp1, temp2 },
+                                    VariableName = varName,
+                                    ExpressionPrefix = expressionPrefix,
+                                    ParameterTarget = UseToReplaceIn.Url,
+                                };
+
+                                parameter = p2.Referer.AddParameterToExtract(parameter);
+                                p2.AddParameterToUse(parameter);
+                            }
+                    }
+                    else if ((temp1 == null) && (temp2 ==null))
+                    {
+                            Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url without parameters");
+                    }
+                    break;
+
+                // parametrize when different and when parameter is in both strings
+                case ComparerResultType.HideNullOrEquals:
+                    if (temp1 != null && temp2 != null && temp1 != temp2)
+                    {
+                        if (isParametrized(temp2)){
+                            Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
+                        }
+                        else{
+                            varName = NameFactory.GetInstance().GetNewName();
+
+                            parameter = new Parameter
+                            {
+                                ExtractedFromPage = p2.Referer,
+                                UsedInPages = new List<Page>(),
+                                Values = new List<string> { temp1, temp2 },
+                                VariableName = varName,
+                                ExpressionPrefix = expressionPrefix,
+                                ParameterTarget = UseToReplaceIn.Url,
+                            };
+
+                            parameter = p2.Referer.AddParameterToExtract(parameter);
+                            p2.AddParameterToUse(parameter);
+                        }
+                    }
+                    break;
+            }
+            return p2;
+        }
+
+        private static void CompareSessionVsPageInPOST(Page p2, Session s1, Page rootPage, ComparerResultType type)
+        {
+            if (s1 == null || p2 == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            // Get the differences in the URLs, etc.
+            var page = CompareSessionVsPageInGET(p2, s1, rootPage, type);
+
+            // Get the differences in the bodies
+            var s1Body = s1.GetRequestBodyAsString();
+            var s2Body = p2.Body.ToString();
+
+            var params1 = CreateDictionaryFromBody(s1.id, s1Body, ParamNamesWithJSONContent);
+            var params2 = CreateDictionaryFromBody(s1.id, s2Body, ParamNamesWithJSONContent);
+
+            var differences = GetTheDifferences(params1, params2, type).ToList();
+            //todo remove differences parametrized
+
+            if (differences.Count == 0)
+            {
+                Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": bodies are equal");
+            }
+            else
+            {
+                foreach (var difference in differences)
+                {
+                    if (isParametrized(difference.Value2))
+                    {
+                        Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": atributte " + difference.Key + " is parametrized in page");
+                    }
+                    else
+                    {
+                        var parameter = new Parameter
+                        {
+                            ExtractedFromPage = page.Referer,
+                            UsedInPages = new List<Page>(),
+                            Values = new List<string> { difference.Value1, difference.Value2 },
+                            VariableName = difference.Key,
+                            ExpressionPrefix = difference.Key,
+                            ParameterTarget = UseToReplaceIn.Body,
+                        };
+
+                        parameter = page.Referer.AddParameterToExtract(parameter);
+                        page.AddParameterToUse(parameter);
+                    }
+                }
             }
         }
 
@@ -467,7 +715,7 @@ namespace Abstracta.FiddlerSessionComparer
 
             return result;
         }
-
+ 
         private static Dictionary<string, string> CreateDictionaryFromBody(int fiddlerSessionId, string body, string []paramsWithJSON)
         {
             var result = new Dictionary<string, string>();
@@ -512,11 +760,10 @@ namespace Abstracta.FiddlerSessionComparer
 
         private static void GetParamsFromJSON(string fatherVariableName, string value, IDictionary<string, string> result)
         {
-            if (value.Trim() == string.Empty || value == "\"\"")
+			if (value.Trim() == string.Empty || value == "\"\"")
             {
                 return;
             }
-
             var json = HttpUtility.UrlDecode(value);
 
             // to support .NET 3.5 can't use dynamics
@@ -573,6 +820,44 @@ namespace Abstracta.FiddlerSessionComparer
                    && GetPathFromURL(s1.fullUrl) == GetPathFromURL(s2.fullUrl);
         }
 
+        private static bool SameURL(Session s1, Page p2)
+        {
+            if (s1 == null && p2 == null)
+            {
+                return true;
+            }
+            if (s1 == null)
+            {
+                return false;
+            }
+            if (p2 == null)
+            {
+                return false;
+            }
+            
+            return s1.oRequest.headers.HTTPMethod == p2.HTTPMethod 
+                   && GetPathFromURL(s1.fullUrl) == GetPathFromURL(p2.FullURL);
+        }
+
+        private static bool isParametrized(String param2)
+        {
+            if (param2.Length >= 2)
+            {
+                if (param2.Substring(0, 2) == "${" && param2.EndsWith("}"))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         private static bool IsPrimaryReq(string url, IEnumerable<string> extenssions)
         {
             return extenssions != null && extenssions.Any(url.EndsWith);
@@ -590,7 +875,7 @@ namespace Abstracta.FiddlerSessionComparer
             return temp1.Length == 1 ? null : temp1[1];
         }
 
-        private static string GetProgramFromURL(string url)
+		private static string GetProgramFromURL(string url)
         {
             var index = url.Length - 1;
             for (; index > 0; index--)
@@ -601,7 +886,6 @@ namespace Abstracta.FiddlerSessionComparer
             url = url.Substring(index + 1);
             return url;
         }
-
         # endregion
     }
 }

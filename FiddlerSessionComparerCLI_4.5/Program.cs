@@ -15,11 +15,13 @@ namespace Abstracta.FiddlerSessionComparerCLI
         {
             const string fiddlerSessionsFile1 = @"";
             const string fiddlerSessionsFile2 = @"";
+            const string fiddlerSessionsFile3 = @"";
 
             const string pagesResultFile = @"pruebaAuto-Param.txt";
 
             var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer();
             fiddlerComparer.Load(fiddlerSessionsFile1, fiddlerSessionsFile2, null);
+
             var result = fiddlerComparer.CompareFull();
 
             // save page structure result to file
@@ -38,7 +40,7 @@ namespace Abstracta.FiddlerSessionComparerCLI
                 throw new Exception("Sessions == null");
             }
 
-            var referersChain = new Page(null, "", "", "");
+            var referersChain = new Page(null, "", "", "", "");
 
             foreach (var session in sessions)
             {
@@ -47,16 +49,17 @@ namespace Abstracta.FiddlerSessionComparerCLI
                 var uri = session.fullUrl;
                 var body = session.HTTPMethodIs("POST") ? session.GetRequestBodyAsString() : "";
                 var htmlResponse = session.GetResponseBodyAsString();
+                var httpmethod = session.oRequest.headers.HTTPMethod;
 
                 var refererPage = referersChain.FindRefererPage(referer, id);
 
                 if (refererPage == null)
                 {
-                    referersChain.Followers.Add(new Page(new Page(null, referer, "", ""), uri, body, htmlResponse));
+                    referersChain.Followers.Add(new Page(new Page(null, referer, "", "", ""), uri, body, htmlResponse, httpmethod));
                 }
                 else
                 {
-                    refererPage.Followers.Add(new Page(refererPage, uri, body, htmlResponse));
+                    refererPage.Followers.Add(new Page(refererPage, uri, body, htmlResponse, httpmethod));
                 }
             }
 
