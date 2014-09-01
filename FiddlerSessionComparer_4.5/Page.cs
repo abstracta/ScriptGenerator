@@ -45,8 +45,7 @@ namespace Abstracta.FiddlerSessionComparer
                     else
                     {
                         replaceValue = parameter.SourceOfValue.ReplaceValue;
-                        replaceWith = parameter.SourceOfValue.ReplaceWith.Replace(Parameter.DefaultVariableName,
-                                                                                     variable);
+                        replaceWith = parameter.SourceOfValue.ReplaceWith.Replace(Parameter.DefaultVariableName, variable);
                         if (_bodyOfPost.Contains(replaceValue))
                         {
                             _bodyOfPost = _bodyOfPost.Replace(replaceValue, replaceWith);
@@ -94,7 +93,7 @@ namespace Abstracta.FiddlerSessionComparer
             set { _url = value; }
         }
 
-        public string HTMLResponse { get; set; }
+        public string HTTPResponse { get; set; }
 
         public string RefererURL { get; set; }
 
@@ -108,7 +107,7 @@ namespace Abstracta.FiddlerSessionComparer
             Uri = uri;
             _url = uri;
             Body = body;
-            HTMLResponse = htmlResponse;
+            HTTPResponse = htmlResponse;
 
             Followers = new List<Page>();
 
@@ -159,10 +158,10 @@ namespace Abstracta.FiddlerSessionComparer
                 }
 
                 // If the parameter can be found in the HTML, extract from this page
-                if (parameter.IsContainedInHTML(HTMLResponse))
+                if (parameter.IsContainedInResponse(HTTPResponse))
                 {
                     // setting the regular expression
-                    parameter.SetRegularExpressionOfParameterFromBody(HTMLResponse);
+                    parameter.SetRegularExpressionOfParameterFromBody(HTTPResponse);
                     _parametersToExtract.Add(parameter);
                 }
                     // Search the parameter in the HTML response of the followers
@@ -173,7 +172,7 @@ namespace Abstracta.FiddlerSessionComparer
                     // The value searched isn't in the response of (1)
                 else
                 {
-                    var follower = Followers.FirstOrDefault(f => parameter.IsContainedInHTML(f.HTMLResponse));
+                    var follower = Followers.FirstOrDefault(f => parameter.IsContainedInResponse(f.HTTPResponse));
                     if (follower != null)
                     {
                         parameter = follower.AddParameterToExtract(parameter);
@@ -199,16 +198,16 @@ namespace Abstracta.FiddlerSessionComparer
                 }
 
                 // Search the parameter value in the HTML
-                if (HTMLResponse.Contains(parameter.Values[0]))
+                if (HTTPResponse.Contains(parameter.Values[0]))
                 {
                     // setting the regular expression
-                    parameter.SetRegularExpressionOfParameterFromURL(HTMLResponse);
+                    parameter.SetRegularExpressionOfParameterFromURL(HTTPResponse);
                     _parametersToExtract.Add(parameter);
                 }
                 else
                 {
                     // it can be a redirect from another page
-                    var follower = Followers.FirstOrDefault(f => f.HTMLResponse.Contains(parameter.Values[0]));
+                    var follower = Followers.FirstOrDefault(f => f.HTTPResponse.Contains(parameter.Values[0]));
                     if (follower != null)
                     {
                         parameter = follower.AddParameterToExtract(parameter);

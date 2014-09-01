@@ -113,37 +113,65 @@ namespace Abstracta.FiddlerSessionComparer
         /// <summary>
         /// Create a regular expression for body parameters.
         /// </summary>
-        /// <param name="body">Character string to filter the regular expression</param>
-        public void SetRegularExpressionOfParameterFromBody(string body)
+        /// <param name="httpResponse">Character string to filter the regular expression</param>
+        public void SetRegularExpressionOfParameterFromBody(string httpResponse)
         {
-            var bodyCopy = body;
+            var bodyCopy = httpResponse;
 
-            // searches for the variable's name in the response body
-            var pos = IndexOfParameterInHTML(body, ExpressionPrefix);
-
-            if (pos < 0)
+            if (IsHTMLResponse(httpResponse))
             {
-                SourceOfValue = new RegExpExtractor(1, "", "1", "1");
-                Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
-                return;
-            }
+                // searches for the variable's name in the response body
+                var pos = IndexOfParameterInHTML(httpResponse, ExpressionPrefix);
 
-            SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
+                if (pos < 0)
+                {
+                    SourceOfValue = new RegExpExtractor(1, "", "1", "1");
+                    Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
+                    return;
+                }
+
+                SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
+            }
+            else
+            {
+                // searches for the variable's name in the response 
+                var pos = IndexOfParameterInHTML(httpResponse, ExpressionPrefix);
+
+                if (pos < 0)
+                {
+                    SourceOfValue = new RegExpExtractor(1, "", Values[0], DefaultVariableName);
+                    Utils.Logger.GetInstance().Log("MSG: Can't find a variable name in a JSON Response, need to extract just the value: " + ExpressionPrefix);
+                    return;
+                }
+
+                SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
+            }
         }
 
         /// <summary>
         /// Returns the value of truth of ExpressionPrefix is contained in htmlResponse
         /// </summary>
-        /// <param name="htmlResponse">Character string where i want to search ExpressionPrefix</param>
+        /// <param name="response">Character string where i want to search ExpressionPrefix</param>
         /// <returns>Returns true if ExpressionPrefix is contained in htmlResponse or false otherwise</returns>
-        public bool IsContainedInHTML(string htmlResponse)
+        public bool IsContainedInResponse(string response)
         {
-            return IndexOfParameterInHTML(htmlResponse, ExpressionPrefix) >= 0;
+            if (IsHTMLResponse(response))
+            {
+                var htmlTag = GetTagThatContainsValues(response, ExpressionPrefix, Values[0]);
+                return htmlTag != null;
+            }
+
+            var tmp11 = System.Web.HttpUtility.UrlDecode(Values[0]);
+            var tmp12 = System.Web.HttpUtility.HtmlEncode(tmp11);
+            tmp12 = ProcessAccents(tmp12);
+
+            var indexOf = response.IndexOf(tmp12, StringComparison.Ordinal);
+            return indexOf > 0;
         }
 
         # region private methods
 
-        private ParameterSoure GetRegExp(string body, int pos, string parameterName, string value)
+        private static ParameterSoure GetRegExp(string body, int pos, string parameterName, string value)
         {
             switch (GetBodyType(body, pos, parameterName, value))
             {
@@ -183,17 +211,15 @@ namespace Abstracta.FiddlerSessionComparer
         private static VariableType GetBodyType(string body, int pos, string key, string value)
         {
             // checks if there is a tag in the HTML response, that contains the value and the key
-            var htmlTag = GetTagThatContainsValue(body, value);
+            var htmlTag = GetTagThatContainsValues(body, key, value);
             if (htmlTag != null && htmlTag.Contains(key))
             {
                 if ((body[pos - 1] == '\"' && body[pos + key.Length] == '\"') && (body[pos + key.Length + 2] == '\"'))
                 {
                     return VariableType.JSONString;
                 }
-                else
-                {
-                    return VariableType.HTML;
-                }
+
+                return VariableType.HTML;
             }
 
             if (body[pos - 1] == '\"' && body[pos - 2] == '\\')
@@ -252,24 +278,77 @@ namespace Abstracta.FiddlerSessionComparer
 
         private static string GetTagThatContainsValue(string html, string value)
         {
-            var indexOf = html.IndexOf(value, StringComparison.Ordinal);
-            if (indexOf < 0)
+            return GetTagThatContainsValues(html, value, string.Empty);
+        }
+
+        private static string GetTagThatContainsValues(string html, string val1, string val2)
+        {
+            // must be unescaped: i.e. '%3Ck2b%20xmlns%3D%22SPU%22' to '<k2b xmlns="SPU"'
+            var tmp11 = System.Web.HttpUtility.UrlDecode(val1);
+            var tmp21 = System.Web.HttpUtility.UrlDecode(val2);
+
+            if (tmp11 == null || tmp21 == null)
             {
                 return null;
             }
 
-            int indexIni = indexOf, indexEnd = indexOf;
-            for (; indexIni > 0 && html[indexIni] != '<'; indexIni--)
+            // enconde to HTML: i.e. '<k2b xmlns="SPU"' to '&lt;k2b xmlns=&quot;SPU&quot;'
+            var tmp12 = System.Web.HttpUtility.HtmlEncode(tmp11);
+            var tmp22 = System.Web.HttpUtility.HtmlEncode(tmp21);
+
+            tmp12 = ProcessAccents(tmp12);
+            tmp22 = ProcessAccents(tmp22);
+          
+            // Can't change the html string, because it's what it comes. The regular expression must match the HTML unchanged.
+            var html2 = html.Replace("\n", "").Replace("\r", "");
+
+            while (html2.Length > 0)
             {
+                var indexOf = html2.IndexOf(tmp12, StringComparison.Ordinal);
+                if (indexOf < 0)
+                {
+                    return null;
+                }
+
+                int indexIni = indexOf, indexEnd = indexOf;
+                for (; indexIni > 0 && html2[indexIni] != '<'; indexIni--)
+                {
+                }
+
+                for (; indexEnd < html2.Length && html2[indexEnd] != '>'; indexEnd++)
+                {
+                }
+
+                var tag = html2.Substring(indexIni, (indexEnd - indexIni));
+
+                if (tag.Contains(tmp22))
+                {
+                    return tag;
+                }
+
+                html2 = html2.Substring(indexOf + tmp12.Length);
             }
 
-            for (; indexEnd < html.Length && html[indexEnd] != '>'; indexEnd++)
-            {
-            }
-
-            return html.Substring(indexIni, indexEnd - indexIni);
+            return null;
         }
 
+        private static string ProcessAccents(string value)
+        {
+            value = value.Replace("&#225;", "á");
+            value = value.Replace("&#233;", "é");
+            value = value.Replace("&#237;", "í");
+            value = value.Replace("&#243;", "ó");
+            value = value.Replace("&#250;", "ú");
+
+            return value;
+        }
+        
+        /// <summary>
+        /// Index of parameterName and parameterValue
+        /// </summary>
+        /// <param name="htmlResponse"></param>
+        /// <param name="parameterName"></param>
+        /// <returns></returns>
         private static int IndexOfParameterInHTML(string htmlResponse, string parameterName)
         {
             var offset = 0;

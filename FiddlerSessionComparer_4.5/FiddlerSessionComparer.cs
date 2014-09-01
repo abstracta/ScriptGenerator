@@ -393,15 +393,21 @@ namespace Abstracta.FiddlerSessionComparer
                 var parameter = new Parameter
                 {
                     ExtractedFromPage = page.Referer,
-                    UsedInPages = new List<Page>(),
+                    UsedInPages = new List<Page> { page },
                     Values = new List<string> { difference.Value1, difference.Value2 },
                     VariableName = difference.Key,
                     ExpressionPrefix = difference.Key,
                     ParameterTarget = UseToReplaceIn.Body,
                 };
                 
-                parameter = page.Referer.AddParameterToExtract(parameter);
-                page.AddParameterToUse(parameter);
+                var p2 = page.Referer.AddParameterToExtract(parameter);
+                if (parameter == p2)
+                {
+                    p2.UsedInPages = new List<Page>();
+                }
+
+                // adds p2 when it isn't null, otherwise, adds parameter
+                page.AddParameterToUse(p2 ?? parameter);
             }
         }
 

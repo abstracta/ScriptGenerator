@@ -14,6 +14,18 @@ namespace Abstracta.ScriptGenerator
         public MainWindow()
         {
             InitializeComponent();
+
+            const string path = @"D:\Abstracta\Desarrollo\GitHubAbstractaTools\ScriptGenerator\trunk\Examples\Unifrutti\";
+
+            Host.Text = "200.111.176.10:8080";
+            AppName.Text = "performance";
+            FiddlerFileName1.Text = path + "BodyGrande1.saz";
+            FiddlerFileName2.Text = path + "BodyGrande2.saz";
+
+            // FiddlerFileName1.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta\RecepcionFrutaGranel1.saz";
+            // FiddlerFileName2.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta\RecepcionFrutaGranel2.saz";
+
+            ResultFolderName.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta";
         }
 
         private void GenerateScript(object sender, RoutedEventArgs e)
