@@ -38,7 +38,8 @@ namespace Abstracta.FiddlerSessionComparer
                     var variable = "${__urlencode(${" + parameter.ExpressionPrefix + "})}";
                     replaceWith = replaceWith.Replace(Parameter.EscapedDefaultVariableName, variable);
 
-                    if (_bodyOfPost.Contains(replaceValue))
+                    // only replace strings larger or equal than 5 chars
+                    if (_bodyOfPost.Contains(replaceValue) && replaceValue.Length >= 5)
                     {
                         _bodyOfPost = _bodyOfPost.Replace(replaceValue, replaceWith);
                     }
@@ -46,7 +47,9 @@ namespace Abstracta.FiddlerSessionComparer
                     {
                         replaceValue = parameter.SourceOfValue.ReplaceValue;
                         replaceWith = parameter.SourceOfValue.ReplaceWith.Replace(Parameter.DefaultVariableName, variable);
-                        if (_bodyOfPost.Contains(replaceValue))
+
+                        // only replace strings larger or equal than 5 chars
+                        if (_bodyOfPost.Contains(replaceValue) && replaceValue.Length >= 5)
                         {
                             _bodyOfPost = _bodyOfPost.Replace(replaceValue, replaceWith);
                         }
