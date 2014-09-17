@@ -25,5 +25,10 @@
         {
             return "URL_Params" + ++_id;
         }
+
+        internal void Reset()
+        {
+            _id = -1;
+        }
     }
 }

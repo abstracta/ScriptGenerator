@@ -24,9 +24,10 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 foreach (var parameter in _parametersToUse.Where(parameter => parameter.ParameterTarget == UseToReplaceIn.Body))
                 {
-                    if (parameter.SourceOfValue == null)
+                    if (!parameter.IsSourceOfValueDefined())
                     {
-                        Utils.Logger.GetInstance().Log("Something bad happened. SourceOfValue is null: " + parameter);
+                        // todo: all parameters that haven't source of value, must have a constant
+                        Utils.Logger.GetInstance().Log("SourceOfValue is not defined: " + parameter);
                         continue;
                     }
 
@@ -107,12 +108,12 @@ namespace Abstracta.FiddlerSessionComparer
         
         public List<Page> Followers { get; set; }
 
-        public Page(Page referer, string uri, string body, string htmlResponse, string HttpMethod)
+        public Page(Page referer, string uri, string body, string htmlResponse, string httpMethod)
         {
             Referer = referer;
             Uri = uri;
             _url = uri;
-            HTTPMethod = HttpMethod;
+            HTTPMethod = httpMethod;
             Body = body;
             HTTPResponse = htmlResponse;
 
@@ -153,9 +154,14 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 return null;
             }
-
-			
-
+            
+            // search the parameter in the Parameters list
+            var mp = Parameter.GetMatchingParameter(parameter);
+            if (mp != null)
+            {
+                return mp;
+            }
+            
             if (parameter.ParameterTarget == UseToReplaceIn.Body)
             {
                 # region Parameter used in a Body of a POST
@@ -180,7 +186,11 @@ namespace Abstracta.FiddlerSessionComparer
                     // The value searched isn't in the response of (1)
                 else
                 {
-                    var follower = Followers.FirstOrDefault(f => parameter.IsContainedInResponse(f.HTTPResponse));
+                    // Skip the pages that use the parameter
+                    var follower = Followers.FirstOrDefault(f => 
+                                                    !parameter.UsedInPages.Contains(f) && 
+                                                    parameter.IsContainedInResponse(f.HTTPResponse));
+
                     if (follower != null)
                     {
                         parameter = follower.AddParameterToExtract(parameter);
@@ -188,8 +198,10 @@ namespace Abstracta.FiddlerSessionComparer
                     }
                     else
                     {
-                        Utils.Logger.GetInstance().Log("Didn't find a page (from id: " + Id + ") to assign a parameter to extract: " + parameter);
-                        return null;
+                        parameter.SetDefaultSourceOfValue();
+                        _parametersToExtract.Add(parameter);
+
+                        Utils.Logger.GetInstance().Log("Didn't find a page (from id: " + Id + ") to assign a parameter to extract: " + parameter); 
                     }
                 }
 
@@ -223,14 +235,17 @@ namespace Abstracta.FiddlerSessionComparer
                     }
                     else
                     {
+                        parameter.SetDefaultSourceOfValue();
+                        _parametersToExtract.Add(parameter);
+
                         Utils.Logger.GetInstance().Log("Didn't find a page (from id: " + Id + ") to assign a parameter to extract: " + parameter);
-                        return null;
                     }
                 }
 
                 # endregion
             }
 
+            Parameter.AddParameterToMainList(parameter);
             return parameter;
         }
 
@@ -314,19 +329,19 @@ namespace Abstracta.FiddlerSessionComparer
             return Followers.Aggregate(res, (current, follower) => current + follower.ToString(tab + "\t", printReferer));
         }
 
-        public SortedList<int, Page> getSubPagesList()
-            //Make a sorted list of all the Pages of the tree
+        public SortedList<int, Page> GETSubPagesList()
         {
-            SortedList<int, Page> slist = new SortedList<int, Page>();
+            //Make a sorted list of all the Pages of the tree
+            var slist = new SortedList<int, Page>();
 
             AddFollowersToList(this, slist);
                         
             return slist;
         }
 
-        private void AddFollowersToList(Page pag, SortedList<int, Page> list)
+        private static void AddFollowersToList(Page pag, SortedList<int, Page> list)
         {
-            foreach (Page p in pag.Followers)
+            foreach (var p in pag.Followers)
             {
                 list.Add(p.Id, p);
                 if (p.Followers.Count > 0)

@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiddlerSessionComparerCLI_4
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiddlerSessionComparerCLI_3.5", "FiddlerSessionComparerCLI_3.5\FiddlerSessionComparerCLI_3.5.csproj", "{8F0A58A6-733D-4FB6-ABF6-593C2A77EA50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiddlerSessionComparerTests_4.5", "FiddlerSessionComparerTests_4.5\FiddlerSessionComparerTests_4.5.csproj", "{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,16 @@ Global
 		{8F0A58A6-733D-4FB6-ABF6-593C2A77EA50}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{8F0A58A6-733D-4FB6-ABF6-593C2A77EA50}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8F0A58A6-733D-4FB6-ABF6-593C2A77EA50}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,5 +163,6 @@ Global
 		{BF765900-8D1D-4262-83B2-5B183D967A92} = {9FB5C038-C2C0-4AD6-AC06-5C54B08B73CF}
 		{B8222B36-1193-4D0B-B8FC-82BC0F176E6D} = {9FB5C038-C2C0-4AD6-AC06-5C54B08B73CF}
 		{537D3B50-0FB2-404D-9C0F-05B0FEE63F1A} = {9FB5C038-C2C0-4AD6-AC06-5C54B08B73CF}
+		{AA6CD392-CD21-4F30-9DB1-2F00557A3E10} = {9FB5C038-C2C0-4AD6-AC06-5C54B08B73CF}
 	EndGlobalSection
 EndGlobal

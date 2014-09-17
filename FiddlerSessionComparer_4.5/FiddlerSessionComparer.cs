@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters;
 using System.Web;
+using Abstracta.FiddlerSessionComparer.Content;
 using Abstracta.FiddlerSessionComparer.Utils;
 using Fiddler;
 using Newtonsoft.Json;
@@ -10,11 +12,20 @@ using Newtonsoft.Json.Linq;
 
 namespace Abstracta.FiddlerSessionComparer
 {
+    internal enum ComplexType
+    {
+        Simple,
+        JSON, 
+        XML, 
+        Unknown, 
+    }
+
     public class FiddlerSessionComparer
     {
-        private static readonly string[] ParamNamesWithJSONContent = new[] { "GXState" };
+        // deprecated
+        // private static readonly string[] ParamNamesWithJSONContent = new[] { "GXState" };
 
-        private Session[] _sessions1, _sessions2, _sessions3;
+        private Session[] _sessions1, _sessions2;
 
         private Page _resultOfComparizon;
 
@@ -42,7 +53,7 @@ namespace Abstracta.FiddlerSessionComparer
         }
 
         //Returns session 3 to 
-		public Session[] getSession3(string fiddlerSessionsFileName)
+		public Session[] GETSession3(string fiddlerSessionsFileName)
         {
             var session = GetSessionsFromFile(fiddlerSessionsFileName);
 
@@ -88,6 +99,12 @@ namespace Abstracta.FiddlerSessionComparer
         public static string EscapeString(string s)
         {
             return Uri.EscapeDataString(s);
+        }
+
+        public static void ResetComparer()
+        {
+            Parameter.Reset();
+            NameFactory.GetInstance().Reset();
         }
 
         # endregion
@@ -174,8 +191,8 @@ namespace Abstracta.FiddlerSessionComparer
                 params1 = session1.GetRequestBodyAsString();
                 params2 = session2.GetRequestBodyAsString();
 
-                var dicParams1 = CreateDictionaryFromBody(index1, params1, ParamNamesWithJSONContent);
-                var dicParams2 = CreateDictionaryFromBody(index2, params2, ParamNamesWithJSONContent);
+                var dicParams1 = CreateListOfValuesFromBody(index1, params1);
+                var dicParams2 = CreateListOfValuesFromBody(index2, params2);
 
                 res.AddRange(GetTheDifferences(dicParams1, dicParams2, type));
             }
@@ -246,10 +263,10 @@ namespace Abstracta.FiddlerSessionComparer
 
             var sCount = sessions.Count();
 
-            Session[] _sessions3 = new Session[sCount];
-            for (int i1 = 0; i1 < sCount; )
+            var sessions3 = new Session[sCount];
+            for (var i1 = 0; i1 < sCount; )
             {
-                _sessions3[i1] = sessions[i1];
+                sessions3[i1] = sessions[i1];
                 i1++;
             }
             
@@ -261,8 +278,7 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             //Make a sorted list of all Pages
-            SortedList<int, Page> pageList = new SortedList<int, Page>();
-            pageList = _resultOfComparizon.getSubPagesList();
+		    var pageList = _resultOfComparizon.GETSubPagesList();
 
             // compares _resultOfComparizon, against sessions
             
@@ -270,16 +286,16 @@ namespace Abstracta.FiddlerSessionComparer
             
             for (int i1 = 0, i2 = 0; i1 < sCount && i2 < pTCount; )
             {
-                var s1 = _sessions3[i1];
+                var s1 = sessions3[i1];
                 var s2 = pageList.Values[i2];
 
                 if (SameURL(s1, s2)) 
                 {
                     // mark those that have a match as null
-                    _sessions3[i1] = null;
+                    sessions3[i1] = null;
                    
                     Utils.Logger.GetInstance().Log("Comparing session " + s1.id + " with page " + s2.Id);
-                    CompareSessionVsPage(s2, s1, _resultOfComparizon);
+                    CompareSessionVsPage(s2, s1);
 
                     // i2 starts always from the beginning
                     i2 = 0;
@@ -348,12 +364,10 @@ namespace Abstracta.FiddlerSessionComparer
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
-			// todo: if applications is genexus
+            // todo: add -> if (applications is genexus)
             temp1 = RemoveUnusedParameters(temp1);
             temp2 = RemoveUnusedParameters(temp2);
-
-
-
+            
             var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
 
             string varName;
@@ -449,8 +463,8 @@ namespace Abstracta.FiddlerSessionComparer
             var s1Body = s1.GetRequestBodyAsString();
             var s2Body = s2.GetRequestBodyAsString();
 
-            var params1 = CreateDictionaryFromBody(s1.id, s1Body, ParamNamesWithJSONContent);
-            var params2 = CreateDictionaryFromBody(s1.id, s2Body, ParamNamesWithJSONContent);
+            var params1 = CreateListOfValuesFromBody(s1.id, s1Body);
+            var params2 = CreateListOfValuesFromBody(s1.id, s2Body);
 
             var differences = GetTheDifferences(params1, params2, type).ToList();
             foreach (var difference in differences)
@@ -477,7 +491,7 @@ namespace Abstracta.FiddlerSessionComparer
             }
         }
 
-        private static void CompareSessionVsPage(Page p2, Session s1, Page rootPage)
+        private static void CompareSessionVsPage(Page p2, Session s1)
         {
             const ComparerResultType type = ComparerResultType.HideNullOrEquals;
 
@@ -485,17 +499,17 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 case "get":
                     // resultLog.Append("SAME GET ? \n\t\t" + s1.fullUrl + "\n\t\t" + s2.fullUrl);
-                    CompareSessionVsPageInGET(p2, s1, rootPage, type);
+                    CompareSessionVsPageInGET(p2, s1, type);
                     break;
 
                 case "post":
                     // resultLog.Append("SAME POST ? \n\t\t" + s1.fullUrl + "\n\t\t" + s2.fullUrl);
-                    CompareSessionVsPageInPOST(p2, s1, rootPage, type);
+                    CompareSessionVsPageInPOST(p2, s1, type);
                     break;
             }
         }
 
-        private static Page CompareSessionVsPageInGET(Page p2, Session s1, Page rootPage, ComparerResultType type)
+        private static Page CompareSessionVsPageInGET(Page p2, Session s1, ComparerResultType type)
         {
             if (s1 == null || p2 == null)
             {
@@ -523,7 +537,7 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 // parametrize allways 
                 case ComparerResultType.ShowAll:
-                    if (isParametrized(temp2))
+                    if (IsParametrized(temp2))
                         {
                             Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
                         }
@@ -551,7 +565,7 @@ namespace Abstracta.FiddlerSessionComparer
                 case ComparerResultType.HideEquals:
                     if (temp1 != temp2)
                     {                        
-                            if (isParametrized(temp2))
+                            if (IsParametrized(temp2))
                             {
                                 Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
                             }
@@ -583,7 +597,7 @@ namespace Abstracta.FiddlerSessionComparer
                 case ComparerResultType.HideNullOrEquals:
                     if (temp1 != null && temp2 != null && temp1 != temp2)
                     {
-                        if (isParametrized(temp2)){
+                        if (IsParametrized(temp2)){
                             Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
                         }
                         else{
@@ -605,10 +619,11 @@ namespace Abstracta.FiddlerSessionComparer
                     }
                     break;
             }
+
             return p2;
         }
 
-        private static void CompareSessionVsPageInPOST(Page p2, Session s1, Page rootPage, ComparerResultType type)
+        private static void CompareSessionVsPageInPOST(Page p2, Session s1, ComparerResultType type)
         {
             if (s1 == null || p2 == null)
             {
@@ -616,14 +631,14 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             // Get the differences in the URLs, etc.
-            var page = CompareSessionVsPageInGET(p2, s1, rootPage, type);
+            var page = CompareSessionVsPageInGET(p2, s1, type);
 
             // Get the differences in the bodies
             var s1Body = s1.GetRequestBodyAsString();
-            var s2Body = p2.Body.ToString();
+            var s2Body = p2.Body;
 
-            var params1 = CreateDictionaryFromBody(s1.id, s1Body, ParamNamesWithJSONContent);
-            var params2 = CreateDictionaryFromBody(s1.id, s2Body, ParamNamesWithJSONContent);
+            var params1 = CreateListOfValuesFromBody(s1.id, s1Body);
+            var params2 = CreateListOfValuesFromBody(s1.id, s2Body);
 
             var differences = GetTheDifferences(params1, params2, type).ToList();
             //todo remove differences parametrized
@@ -636,7 +651,7 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 foreach (var difference in differences)
                 {
-                    if (isParametrized(difference.Value2))
+                    if (IsParametrized(difference.Value2))
                     {
                         Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": atributte " + difference.Key + " is parametrized in page");
                     }
@@ -659,145 +674,233 @@ namespace Abstracta.FiddlerSessionComparer
             }
         }
 
-        private static IEnumerable<EqualsResult> GetTheDifferences(Dictionary<string, string> dic1, Dictionary<string, string> dic2, ComparerResultType type)
+        private static IEnumerable<EqualsResult> GetTheDifferences(IEnumerable<Tuple<string, string>> paramValues1, ICollection<Tuple<string, string>> paramValues2, ComparerResultType type)
         {
             var result = new List<EqualsResult>();
+            const string aux = "NULL";
 
-            foreach (var key in dic1.Keys)
+            foreach (var pv in paramValues1)
             {
+                // todo: improve performance here, use find element instead of search if its contained and after that get it
+                var key = pv.Item1;
+                var value1 = pv.Item2;
+                var paramValues2ContainsKey = ContainsKey(paramValues2, key);
+                var value2 = (paramValues2ContainsKey) ? GetValueByKey(paramValues2, key) : aux;
+
                 switch (type)
                 {
                     case ComparerResultType.ShowAll:
-                        if (!dic2.ContainsKey(key))
+                        if (!paramValues2ContainsKey)
                         {
-                            result.Add(new EqualsResult(key, dic1[key], "NULL"));
+                            result.Add(new EqualsResult(key, value1, value2));
                         }
                         else
                         {
-                            result.Add(new EqualsResult(key, dic1[key], dic2[key]));
-                            dic2.Remove(key);
+                            result.Add(new EqualsResult(key, value1, value2));
+                            RemoveByKey(paramValues2, key);
                         }
                         break;
                     
                     case ComparerResultType.HideEquals:
-                        if (!dic2.ContainsKey(key))
+                        if (!paramValues2ContainsKey)
                         {
-                            result.Add(new EqualsResult(key, dic1[key], "NULL"));
+                            result.Add(new EqualsResult(key, value1, value2));
                         }
                         else
                         {
-                            if (dic1[key] != dic2[key])
+                            if (value1 != value2)
                             {
-                                result.Add(new EqualsResult(key, dic1[key], dic2[key]));
+                                result.Add(new EqualsResult(key, value1, value2));
                             }
 
-                            dic2.Remove(key);
+                            RemoveByKey(paramValues2, key);
                         }
-
                         break;
+                    
                     case ComparerResultType.HideNullOrEquals:
-                        if (dic2.ContainsKey(key) && dic1[key] != dic2[key])
+                        if (paramValues2ContainsKey)
                         {
-                            result.Add(new EqualsResult(key, dic1[key], dic2[key]));
+                            if (value1 != value2)
+                            {
+                                result.Add(new EqualsResult(key, value1, value2));
+                            }
+
+                            RemoveByKey(paramValues2, key);
                         }
                         break;
                 }
-
             }
 
             switch (type)
             {
                 case ComparerResultType.ShowAll:
                 case ComparerResultType.HideEquals:
-                    result.AddRange(dic2.Keys.Select(key => new EqualsResult(key, "NULL", dic2[key])));
+                    result.AddRange(paramValues2.Select(t => new EqualsResult(t.Item1, aux, t.Item2)));
                     break;
             }
 
             return result;
         }
  
-        private static Dictionary<string, string> CreateDictionaryFromBody(int fiddlerSessionId, string body, string []paramsWithJSON)
+        private static void RemoveByKey(ICollection<Tuple<string, string>> list, string key)
         {
-            var result = new Dictionary<string, string>();
-            var parameters = body.Split('&');
+            var item = list.First(tuple => tuple.Item1 == key);
+            list.Remove(item);
+        }
+
+        private static string GetValueByKey(IEnumerable<Tuple<string, string>> list, string key)
+        {
+            return list.First(tuple => tuple.Item1 == key).Item2;
+        }
+
+        private static bool ContainsKey(IEnumerable<Tuple<string, string>> list, string key)
+        {
+            return list.Any(tuple => tuple.Item1 == key);
+        }
+
+        public static List<Tuple<string, string>> CreateListOfValuesFromBody(int fiddlerSessionId, string body)
+        {
+            var result = new List<Tuple<string, string>>();
             
-            if (parameters.Length == 1)
+            if (string.IsNullOrEmpty(body.Trim()))
             {
-                GetParamsFromJSON("", body, result);
                 return result;
             }
 
-            foreach (var parameter in parameters)
+            var parameters = body.Split('&');
+
+            // body is JSON? XML?
+            if (parameters.Length == 1)
             {
                 try
                 {
-                    if (parameter == string.Empty)
+                    if (ContentFactory.IsComplexType(body))
                     {
-                        continue;
-                    }
-
-                    var splitedParameter = parameter.Split('=');
-                    var varName = splitedParameter[0];
-                    var varValue = splitedParameter[1];
-
-                    if (paramsWithJSON.Contains(varName))
-                    {
-                        GetParamsFromJSON("", varValue, result);
+                        var res = GetLeavesFromComplexType(body);
+                        result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
                     }
                     else
                     {
-                        result.Add(varName, varValue);
+                        throw new Exception("Unsupported case: ERRORCODE 1");
                     }
                 }
                 catch (Exception e)
                 {
-                    Utils.Logger.GetInstance().Log("ERROR: Exception when comparing sessions in page (" + fiddlerSessionId + "): " + e.Message);
+                    Utils.Logger.GetInstance()
+                         .Log("ERROR: Exception when comparing sessions in page (" + fiddlerSessionId + "): " + e.Message);
+                }
+            }
+            else
+            {
+                foreach (var parameter in parameters)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(parameter))
+                        {
+                            continue;
+                        }
+
+                        var splitedParameter = parameter.Split('=');
+
+                        if (splitedParameter.Length == 1)
+                        {
+                            var res = GetLeavesFromComplexType(parameter);
+                            result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
+                        }
+                        else if (splitedParameter.Length == 2)
+                        {
+                            if (ContentFactory.IsComplexType(splitedParameter[1]))
+                            {
+                                var res = GetLeavesFromComplexType(splitedParameter[1]);
+                                result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
+                            }
+                            else
+                            {
+                                result.Add(new Tuple<string, string>(splitedParameter[0], splitedParameter[1]));
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("Unsupported case: ERRORCODE 2");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Logger.GetInstance().Log("ERROR: Exception when comparing sessions in page (" + fiddlerSessionId + "): " + e.Message);
+                    }
                 }
             }
 
             return result;
         }
 
-        private static void GetParamsFromJSON(string fatherVariableName, string value, IDictionary<string, string> result)
+        private static IEnumerable<Tuple<string, string>> GetLeavesFromComplexType(string value)
         {
-			if (value.Trim() == string.Empty || value == "\"\"")
+            var result = new List<Tuple<string, string>>();
+            var decodedType = HttpUtility.UrlDecode(value);
+
+            if (value.Trim() == string.Empty || value == "\"\"") 
             {
-                return;
+                return result;
             }
-            var json = HttpUtility.UrlDecode(value);
 
-            // to support .NET 3.5 can't use dynamics
-            // var values = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(json);
-            var values = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-
-            // todo: tomar los parámetros de los json que vienen pasados a string como objetos dentro del json
-            foreach (var varName in values.Keys)
+            if (ContentFactory.IsJSON(decodedType))
             {
-                // bug: falta considerar los values[k] que son arreglos de objetos (vienen entre [] y se separan por comas)
-                if (values[varName] != null && (values[varName].GetType() == typeof(JObject) || values[varName].GetType().IsSubclassOf(typeof(JObject))))
+                var jsonSettings = new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.All,
+                        TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
+                    };
+
+                var jsonValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(decodedType, jsonSettings);
+                result.AddRange(GetLeavesFromJSON(jsonValues));
+            }
+            else if (ContentFactory.IsXML(decodedType))
+            {
+                var xmlValues = XmlContentType.Deserialize(decodedType);
+                result.AddRange(xmlValues.GetLeaves());
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<Tuple<string, string>> GetLeavesFromJSON(Dictionary<string, object> jsonValues)
+        {
+            var result = new List<Tuple<string, string>>();
+
+            foreach (var key in jsonValues.Keys)
+            {
+                var value = jsonValues[key];
+                if (value is JArray)
                 {
-                    GetParamsFromJSON(varName, values[varName].ToString(), result);
+                    var jarray = value as JArray;
+                    foreach (var item in jarray)
+                    {
+                        var tmp = new Dictionary<string, object> { { key, item } };
+                        result.AddRange(GetLeavesFromJSON(tmp));
+                    }
+                }
+                else if (value is JProperty)
+                {
+                    var jproperty = value as JProperty;
+                    result.Add(new Tuple<string, string>(jproperty.Name, jproperty.Value.ToString()));
+                }
+                else if (value is JObject)
+                {
+                    var jobject = value as JObject;
+                    foreach (var property in jobject.Properties())
+                    {
+                        result.AddRange(GetLeavesFromJSON(new Dictionary<string, object> { { property.Name, property.Value } } ));
+                    }
                 }
                 else
                 {
-                    var val = (values[varName] ?? "NULL").ToString();
-
-                    var hasFather = !string.IsNullOrEmpty(fatherVariableName);
-                    if (!hasFather && !result.ContainsKey(varName))
-                    {
-                        result.Add(varName, val);
-                    }
-                    else if (hasFather && !result.ContainsKey(fatherVariableName))
-                    {
-                        result.Add(fatherVariableName, val);
-                    }
-                    else
-                    {
-                        Utils.Logger.GetInstance().Log("Variable couldn't be added to dictionary to compare JSON: " + fatherVariableName +
-                                  "." + varName);
-                    }
+                    result.Add(new Tuple<string, string>(key, ((value == null) ? "NULL" : value.ToString())));
                 }
             }
+
+            return result;
         }
 
         private static bool SameURL(Session s1, Session s2)
@@ -839,23 +942,14 @@ namespace Abstracta.FiddlerSessionComparer
                    && GetPathFromURL(s1.fullUrl) == GetPathFromURL(p2.FullURL);
         }
 
-        private static bool isParametrized(String param2)
+        private static bool IsParametrized(String param2)
         {
             if (param2.Length >= 2)
             {
-                if (param2.Substring(0, 2) == "${" && param2.EndsWith("}"))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return param2.Substring(0, 2) == "${" && param2.EndsWith("}");
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private static bool IsPrimaryReq(string url, IEnumerable<string> extenssions)

@@ -73,12 +73,14 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                     // the response code of the previous request was a redirect
                     if (fiddlerSessionOfLastPageRequest.IsRedirectByResponseCode())
                     {
-                        lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByResponseCode, page);
+                        var validations = new List<AbstractValidation> { CreateDefaultValidationFromRequest(httpReq) };
+                        lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByResponseCode, page, validations);
                     }
                     // the response code of the previous request was a redirect
                     else if (fiddlerSessionOfLastPageRequest.IsRedirectByJavaScript())
                     {
-                        lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByJavaScript, page);
+                        var validations = new List<AbstractValidation> { CreateDefaultValidationFromRequest(httpReq) };
+                        lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByJavaScript, page, validations);
 
                         // Add validation to the followRedirect: HTTP "200" + Content "Redirect"
                         if (fiddlerSessionOfLastPageRequest.IsGenexusRedirect())

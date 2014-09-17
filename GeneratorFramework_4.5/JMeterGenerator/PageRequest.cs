@@ -59,7 +59,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                             MyStep,
                                             followRedirect.FiddlerSession,
                                             followRedirect.InfoPage,
-                                            Validations,
+                                            followRedirect.Validations,
                                             followRedirect.ParametersToExtract);
                         }
                         // Disable the follow redirects by response code
@@ -305,10 +305,10 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                           + string.Join(",", parameter.UsedInPages.Select(p => p.Id + "").ToArray())
                                           + " } Original value: " + parameter.Values[0];
 
-                    if (parameter.SourceOfValue is RegExpExtractor)
+                    if (parameter.IsSourceOfValueDefined() && parameter.SourceOfValue is RegExpExtractor)
                     {
                         var valueSource = parameter.SourceOfValue as RegExpExtractor;
-                        var regExp = parameter.SourceOfValue != null
+                        var regExp = parameter.IsSourceOfValueDefined()
                                          ? valueSource.RegExp
                                          : "No RegExp extractor was defined for this param.";
                         

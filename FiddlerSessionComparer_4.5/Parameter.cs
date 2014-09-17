@@ -15,6 +15,8 @@ namespace Abstracta.FiddlerSessionComparer
 
         public static string EscapedDefaultVariableName = FiddlerSessionComparer.EscapeString(DefaultVariableName);
 
+        public static List<Parameter> ParametersAlreadyCreated = new List<Parameter>();
+
         public Page ExtractedFromPage { get; set; }
 
         public ParameterSoure SourceOfValue { get; set; }
@@ -28,6 +30,56 @@ namespace Abstracta.FiddlerSessionComparer
         public string ExpressionPrefix { get; set; }
 
         public UseToReplaceIn ParameterTarget { get; set; }
+
+        public static void Reset()
+        {
+            ParametersAlreadyCreated = new List<Parameter>();
+        }
+
+        public static void AddParameterToMainList(Parameter parameter)
+        {
+            if (GetMatchingParameter(parameter) == null)
+            {
+                ParametersAlreadyCreated.Add(parameter);
+            }
+        }
+
+        /// <summary>
+        /// Returns a parameter that matches some conditions:
+        /// 1- Same values
+        /// 2- If check names: 
+        ///       ExpressionPrefix is contained in the other ExpressionPrefix or viceversa
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="checkNames"></param>
+        /// <returns></returns>
+        public static Parameter GetMatchingParameter(Parameter parameter, bool checkNames = true)
+        {
+            foreach (var p in ParametersAlreadyCreated)
+            {
+                var sameValues = true;
+                for (var i = 0; i < p.Values.Count; i++)
+                {
+                    sameValues = sameValues && p.Values[i] == parameter.Values[i];
+                }
+
+                if (p.ParameterTarget == parameter.ParameterTarget && sameValues)
+                {
+                    if (checkNames && (p.ExpressionPrefix.Contains(parameter.ExpressionPrefix) ||
+                                       parameter.ExpressionPrefix.Contains(p.ExpressionPrefix)))
+                    {
+                        return p;
+                    }
+                    
+                    if (!checkNames)
+                    {
+                        return p;
+                    }
+                }
+            }
+
+            return null;
+        }
 
         public override string ToString()
         {
@@ -43,6 +95,11 @@ namespace Abstracta.FiddlerSessionComparer
                    "SourceOfValue=" + SourceOfValue + " " +
                    "Values=['" + values + "']" +
                    "}";
+        }
+
+        public bool IsSourceOfValueDefined()
+        {
+            return SourceOfValue != null;
         }
 
         /// <summary>
@@ -63,7 +120,7 @@ namespace Abstracta.FiddlerSessionComparer
 
             string regExp;
             var replaceValue = "?" + Values[0];
-            var replaceWith = "?${" + ExpressionPrefix + "}";
+            var replaceWith = "?${" + VariableName + "}";
 
             if (IsHTMLResponse(body))
             {
@@ -71,8 +128,8 @@ namespace Abstracta.FiddlerSessionComparer
                 if (htmlTag == null)
                 {
                     // need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
-                    SourceOfValue = new RegExpExtractor(1, "", "1", "1");
                     Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
+                    SetDefaultSourceOfValue();
                     return;
                 }
 
@@ -125,8 +182,8 @@ namespace Abstracta.FiddlerSessionComparer
 
                 if (pos < 0)
                 {
-                    SourceOfValue = new RegExpExtractor(1, "", "1", "1");
                     Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
+                    SetDefaultSourceOfValue();
                     return;
                 }
 
@@ -139,8 +196,8 @@ namespace Abstracta.FiddlerSessionComparer
 
                 if (pos < 0)
                 {
-                    SourceOfValue = new RegExpExtractor(1, "", Values[0], DefaultVariableName);
                     Utils.Logger.GetInstance().Log("MSG: Can't find a variable name in a JSON Response, need to extract just the value: " + ExpressionPrefix);
+                    SetDefaultSourceOfValue();
                     return;
                 }
 
@@ -162,11 +219,21 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             var tmp11 = System.Web.HttpUtility.UrlDecode(Values[0]);
+            if (tmp11 == null)
+            {
+                return false;
+            }
+
             var tmp12 = System.Web.HttpUtility.HtmlEncode(tmp11);
             tmp12 = ProcessAccents(tmp12);
 
             var indexOf = response.IndexOf(tmp12, StringComparison.Ordinal);
             return indexOf > 0;
+        }
+
+        public void SetDefaultSourceOfValue()
+        {
+            SourceOfValue = new ParameterSoure(DefaultVariableName, Values[0]);
         }
 
         # region private methods

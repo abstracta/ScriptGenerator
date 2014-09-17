@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComparerResultType.cs" />
+    <Compile Include="Content\ContentFactory.cs" />
     <Compile Include="EqualsResult.cs" />
     <Compile Include="FiddlerSessionComparer.cs" />
     <Compile Include="Parameter.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Page.cs" />
     <Compile Include="RegExpExtractor.cs" />
     <Compile Include="Utils\SAZ-DOTNETZIP.cs" />
+    <Compile Include="Content\XmlContentType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

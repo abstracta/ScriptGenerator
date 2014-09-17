@@ -105,6 +105,7 @@ namespace Abstracta.Generators.Framework
 
         public void GenerateScripts(GeneratorType generatorType)
         {
+            FiddlerSessionComparer.FiddlerSessionComparer.ResetComparer();
             var generator = GetGenerator(generatorType);
 
             // Initialize generator

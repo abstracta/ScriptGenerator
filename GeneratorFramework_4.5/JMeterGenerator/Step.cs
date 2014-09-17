@@ -68,11 +68,6 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
                 xmlWriter.WriteStartElement("hashTree");
 
-                for (var i = 0; i < Requests.Count; i++)
-                {
-                    xmlWriter.WriteRaw(Requests[i].ToString());
-                }
-
                 foreach (var pageRequest in Requests)
                 {
                     xmlWriter.WriteRaw(pageRequest.ToString());

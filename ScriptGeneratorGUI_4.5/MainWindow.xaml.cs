@@ -15,17 +15,13 @@ namespace Abstracta.ScriptGenerator
         {
             InitializeComponent();
 
-            const string path = @"D:\Abstracta\Desarrollo\GitHubAbstractaTools\ScriptGenerator\trunk\Examples\Unifrutti\";
+            const string path = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\5- Pedido y Cumplimiento\";
 
             Host.Text = "200.111.176.10:8080";
             AppName.Text = "performance";
-            FiddlerFileName1.Text = path + "BodyGrande1.saz";
-            FiddlerFileName2.Text = path + "BodyGrande2.saz";
-
-            // FiddlerFileName1.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta\RecepcionFrutaGranel1.saz";
-            // FiddlerFileName2.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta\RecepcionFrutaGranel2.saz";
-
-            ResultFolderName.Text = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\4- RecepcionGeneralOtraFruta";
+            FiddlerFileName1.Text = path + "g1.saz";
+            FiddlerFileName2.Text = path + "g2.saz";
+            ResultFolderName.Text = path;
         }
 
         private void GenerateScript(object sender, RoutedEventArgs e)
@@ -49,6 +45,7 @@ namespace Abstracta.ScriptGenerator
                 var f1 = FiddlerFileName1.Text;
                 var f2 = FiddlerFileName2.Text;
 
+                // create array of sessions
                 var sessions = (string.IsNullOrEmpty(f2))? new Session[1][] : new Session[2][];
 
                 if (!File.Exists(f1))
@@ -57,6 +54,7 @@ namespace Abstracta.ScriptGenerator
                     return;
                 }
 
+                // load sessions of file1
                 sessions[0] = Generators.Framework.ScriptGenerator.GetSessionsFromFile(f1);
                 if (sessions[0] == null)
                 {
@@ -64,6 +62,7 @@ namespace Abstracta.ScriptGenerator
                     return;
                 }
 
+                // load sessions of file2
                 if (!string.IsNullOrEmpty(f2))
                 {
                     if (!File.Exists(f2))

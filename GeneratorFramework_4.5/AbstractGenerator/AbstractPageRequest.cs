@@ -38,10 +38,12 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
         /// <param name="request">Session of request</param>
         /// <param name="rType">Redirect Type</param>
         /// <param name="page">Page of request</param>
+        /// <param name="validations"></param>
         /// <returns>Returns the variable created</returns>
-        internal AbstractFollowRedirect AddFollowRedirect(Session request, RedirectType rType, Page page)
+        internal AbstractFollowRedirect AddFollowRedirect(Session request, RedirectType rType, Page page, List<AbstractValidation> validations)
         {
             var redirect = new AbstractFollowRedirect(request, rType, page);
+            redirect.Validations.AddRange(validations);
             FollowRedirects.Add(redirect);
 
             return redirect;
