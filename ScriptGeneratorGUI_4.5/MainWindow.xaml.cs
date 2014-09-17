@@ -15,14 +15,6 @@ namespace Abstracta.ScriptGenerator
         {
             InitializeComponent();
 
-            const string path = @"D:\Abstracta\GDrive\Abstracta - PROYECTOS\RUNNING\GXC\2014 - 08 - Perf - Unifrutti\JMeterScripts\5- Pedido y Cumplimiento\";
-
-            Host.Text = "200.111.176.10:8080";
-            AppName.Text = "performance";
-            FiddlerFileName1.Text = path + "g1.saz";
-            FiddlerFileName2.Text = path + "g2.saz";
-            ResultFolderName.Text = path;
-
             ReplaceInBodies.IsChecked = false;
         }
 
