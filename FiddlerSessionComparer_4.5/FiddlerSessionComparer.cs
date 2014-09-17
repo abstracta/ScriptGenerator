@@ -12,24 +12,21 @@ using Newtonsoft.Json.Linq;
 
 namespace Abstracta.FiddlerSessionComparer
 {
-    internal enum ComplexType
-    {
-        Simple,
-        JSON, 
-        XML, 
-        Unknown, 
-    }
-
     public class FiddlerSessionComparer
     {
-        // deprecated
-        // private static readonly string[] ParamNamesWithJSONContent = new[] { "GXState" };
+        // Parameters with values larger than this constant will not be marked as a difference
+        private const int MaxLengthOfValue = 512;
 
         private Session[] _sessions1, _sessions2;
 
         private Page _resultOfComparizon;
 
-        # region public static methods
+        public static bool ReplaceInBodies { get; private set; }
+
+        public FiddlerSessionComparer(bool replaceInBodies)
+        {
+            ReplaceInBodies = replaceInBodies;
+        }
 
 		/// <summary>
         /// Returns the session from saz file
@@ -43,6 +40,7 @@ namespace Abstracta.FiddlerSessionComparer
                 throw new Exception("File doesn't exists: " + fiddlerSessionsFileName);
             }
 
+            SazFormat.ResetId();
             var sessions = SazFormat.GetSessionsFromFile(fiddlerSessionsFileName);
             if (sessions == null)
             {
@@ -50,16 +48,6 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             return sessions;
-        }
-
-        //Returns session 3 to 
-		public Session[] GETSession3(string fiddlerSessionsFileName)
-        {
-            var session = GetSessionsFromFile(fiddlerSessionsFileName);
-
-            session = CleanSessions(session,null);
-
-            return session;
         }
 
 		/// <summary>
@@ -106,8 +94,6 @@ namespace Abstracta.FiddlerSessionComparer
             Parameter.Reset();
             NameFactory.GetInstance().Reset();
         }
-
-        # endregion
 
 		/// <summary>
         /// Converts the fiddler sessions files received as parameters, in session type variables and load them.
@@ -258,27 +244,20 @@ namespace Abstracta.FiddlerSessionComparer
         /// <returns>Depending on the value of the variable CompareResultType type, returns a page with the result of the comparison.</returns>
         public Page CompareFull(Session[] sessions)
         {
-            //verify sessions loaded and compared
+            // Verify 2 sessions were loaded 
             VerifySessionsLoaded();
 
-            var sCount = sessions.Count();
-
-            var sessions3 = new Session[sCount];
-            for (var i1 = 0; i1 < sCount; )
-            {
-                sessions3[i1] = sessions[i1];
-                i1++;
-            }
-            
-            
-            //if _resultOfComparizon == null, compare sessions before
+            // Verify 2 sessions loaded were compared
             if (_resultOfComparizon == null)
             {
                 _resultOfComparizon = CompareFull();
             }
 
-            //Make a sorted list of all Pages
-		    var pageList = _resultOfComparizon.GETSubPagesList();
+            var sCount = sessions.Count();
+            var sessions3 = sessions.ToArray();
+
+            // Make a sorted list of all Pages
+		    var pageList = _resultOfComparizon.GetSubPagesList();
 
             // compares _resultOfComparizon, against sessions
             
@@ -309,7 +288,7 @@ namespace Abstracta.FiddlerSessionComparer
                     // if i2 reaches the end, inc i1
                     if (i2 == pTCount)
                     {
-                        // todo Create an "empty" page, a page without differences
+                        Utils.Logger.GetInstance().Log("No matching URL found in Pages for session: " + s1.id);
                         i2 = 0;
                         i1++;
                     }
@@ -449,6 +428,7 @@ namespace Abstracta.FiddlerSessionComparer
 
             return indexOf == -1 ? parameters : parameters.Substring(0, parameters.Length - indexOf);
         }
+        
         private static void CompareParametersInPOST(Session s1, Session s2, Page rootPage, ComparerResultType type)
         {
             if (s1 == null || s2 == null)
@@ -786,8 +766,7 @@ namespace Abstracta.FiddlerSessionComparer
                 }
                 catch (Exception e)
                 {
-                    Utils.Logger.GetInstance()
-                         .Log("ERROR: Exception when comparing sessions in page (" + fiddlerSessionId + "): " + e.Message);
+                    Utils.Logger.GetInstance().Log("ERROR: Exception when comparing sessions in page (" + fiddlerSessionId + "): " + e.Message);
                 }
             }
             else
@@ -884,7 +863,22 @@ namespace Abstracta.FiddlerSessionComparer
                 else if (value is JProperty)
                 {
                     var jproperty = value as JProperty;
-                    result.Add(new Tuple<string, string>(jproperty.Name, jproperty.Value.ToString()));
+                    var strValue = jproperty.Value.ToString();
+
+                    if (ContentFactory.IsXML(strValue))
+                    {
+                        // this is necesary to process the xml when it has several root elements
+                        strValue = "<root>" + strValue + "</root>";
+                        var xmlValues = XmlContentType.Deserialize(strValue);
+                        result.AddRange(xmlValues.GetLeaves());
+                    }
+                    else
+                    {
+                        if (strValue.Length < MaxLengthOfValue)
+                        {
+                            result.Add(new Tuple<string, string>(jproperty.Name, strValue));
+                        }
+                    }
                 }
                 else if (value is JObject)
                 {
@@ -896,7 +890,21 @@ namespace Abstracta.FiddlerSessionComparer
                 }
                 else
                 {
-                    result.Add(new Tuple<string, string>(key, ((value == null) ? "NULL" : value.ToString())));
+                    var strValue = ((value == null) ? "NULL" : value.ToString());
+                    if (ContentFactory.IsXML(strValue))
+                    {
+                        // this is necesary to process the xml when it has several root elements
+                        strValue = "<root>" + strValue + "</root>";
+                        var xmlValues = XmlContentType.Deserialize(strValue);
+                        result.AddRange(xmlValues.GetLeaves());
+                    }
+                    else
+                    {
+                        if (strValue.Length < MaxLengthOfValue)
+                        {
+                            result.Add(new Tuple<string, string>(key, strValue));
+                        }
+                    }
                 }
             }
 

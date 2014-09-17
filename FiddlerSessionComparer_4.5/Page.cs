@@ -22,6 +22,11 @@ namespace Abstracta.FiddlerSessionComparer
         {
             get
             {
+                if (!FiddlerSessionComparer.ReplaceInBodies)
+                {
+                    return _bodyOfPost;
+                }
+
                 foreach (var parameter in _parametersToUse.Where(parameter => parameter.ParameterTarget == UseToReplaceIn.Body))
                 {
                     if (!parameter.IsSourceOfValueDefined())
@@ -329,7 +334,7 @@ namespace Abstracta.FiddlerSessionComparer
             return Followers.Aggregate(res, (current, follower) => current + follower.ToString(tab + "\t", printReferer));
         }
 
-        public SortedList<int, Page> GETSubPagesList()
+        public SortedList<int, Page> GetSubPagesList()
         {
             //Make a sorted list of all the Pages of the tree
             var slist = new SortedList<int, Page>();
@@ -339,7 +344,7 @@ namespace Abstracta.FiddlerSessionComparer
             return slist;
         }
 
-        private static void AddFollowersToList(Page pag, SortedList<int, Page> list)
+        private static void AddFollowersToList(Page pag, IDictionary<int, Page> list)
         {
             foreach (var p in pag.Followers)
             {

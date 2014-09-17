@@ -20,6 +20,7 @@
         <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,135,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
         <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="0,180,0,0" VerticalAlignment="Top" Width="145" Click="GenerateScript"/>
+        <CheckBox Content="ReplaceInBodies?" HorizontalAlignment="Left" Margin="125,183,0,0" VerticalAlignment="Top" Name="ReplaceInBodies"/>
     </Grid>
 
     <Window.Resources>

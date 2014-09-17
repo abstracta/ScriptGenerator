@@ -45,8 +45,9 @@ namespace Abstracta.Generators.Framework
         /// <param name="fiddlerSessions">HTTP Sessions given by fiddler</param>
         /// <param name="server">serverName:PortNumber</param>
         /// <param name="webApp">WebAppName</param>
+        /// <param name="replaceInBodies"></param>
         /// <param name="ext"></param>
-        public ScriptGenerator(string outputPath, string dataPoolsPath, XmlDocument performanceScript, IList<Session[]> fiddlerSessions, string server, string webApp, IEnumerable<string> ext = null)
+        public ScriptGenerator(string outputPath, string dataPoolsPath, XmlDocument performanceScript, IList<Session[]> fiddlerSessions, string server, string webApp, bool replaceInBodies = false, IEnumerable<string> ext = null)
         {
             OutputPath = outputPath;
             DataPoolsPath = dataPoolsPath;
@@ -85,7 +86,7 @@ namespace Abstracta.Generators.Framework
             // compare sessions once in the constructor of the class
             if (FiddlerSessions.Length > 1)
             {
-                var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer();
+                var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer(replaceInBodies);
                 fiddlerComparer.Load(FiddlerSessions[0].GetSessions(), FiddlerSessions[1].GetSessions(), extenssions);
                 _resultOfComparer = fiddlerComparer.CompareFull();
 

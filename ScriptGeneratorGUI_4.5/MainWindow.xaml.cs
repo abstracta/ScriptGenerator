@@ -22,6 +22,8 @@ namespace Abstracta.ScriptGenerator
             FiddlerFileName1.Text = path + "g1.saz";
             FiddlerFileName2.Text = path + "g2.saz";
             ResultFolderName.Text = path;
+
+            ReplaceInBodies.IsChecked = false;
         }
 
         private void GenerateScript(object sender, RoutedEventArgs e)
@@ -80,7 +82,9 @@ namespace Abstracta.ScriptGenerator
                     }
                 }
 
-                var generator = new Generators.Framework.ScriptGenerator(path, path, null, sessions, host, appName);
+                var replaceInBodies = ReplaceInBodies.IsChecked != null && ReplaceInBodies.IsChecked.Value;
+
+                var generator = new Generators.Framework.ScriptGenerator(path, path, null, sessions, host, appName, replaceInBodies);
                 generator.GenerateScripts(GeneratorType.JMeter);
                 generator.GenerateScripts(GeneratorType.Testing);
             }

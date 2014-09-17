@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using Fiddler;
 using System.IO;
 using System.Collections.Generic;
@@ -30,6 +31,16 @@ namespace Abstracta.FiddlerSessionComparer.Utils
     [ProfferFormat("SAZ", "Fiddler's native session archive zip format")]
     public class SazFormat: ISessionImporter, ISessionExporter
     {
+        public static void ResetId()
+        {
+            var type = typeof (Session);
+            var methodInfo = type.GetMethod("ResetSessionCounter", BindingFlags.NonPublic | BindingFlags.Static);
+            if (methodInfo != null)
+            {
+                methodInfo.Invoke(null, null);
+            }
+        }
+
 #region Internal-Implementation-Details
         /// <summary>
         /// Reads a session archive zip file into an array of Session objects
