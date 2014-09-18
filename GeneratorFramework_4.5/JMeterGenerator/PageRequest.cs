@@ -177,7 +177,15 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             switch (httpMethod.ToLower())
             {
                 case "post":
-                    var body = page != null ? page.Body : request.GetRequestBodyAsString().Replace("'", "&apos;");
+                    var body = page == null ? request.GetRequestBodyAsString().Replace("'", "&apos;") : page.Body;
+                    if (page != null && !FiddlerSessionComparer.FiddlerSessionComparer.ReplaceInBodies)
+                    {
+                        Logger.GetInstance().Log("Body is not parametrized. Differences detected in page: " + request.id);
+                        foreach (var parameter in page.GetParametersToUse())
+                        {
+                            Logger.GetInstance().Log(parameter);    
+                        }
+                    }
 
                     // <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
                     JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.postBodyRaw", "true");

@@ -160,6 +160,9 @@
     <Compile Include="..\GeneratorFramework_4.5\JMeterGenerator\Validations\DefaultValidation.cs">
       <Link>JMeterGenerator\Validations\DefaultValidation.cs</Link>
     </Compile>
+    <Compile Include="..\GeneratorFramework_4.5\Logger.cs">
+      <Link>Logger.cs</Link>
+    </Compile>
     <Compile Include="..\GeneratorFramework_4.5\OSTAGenerator\AuxiliarClasses\DataFile.cs">
       <Link>OSTAGenerator\AuxiliarClasses\DataFile.cs</Link>
     </Compile>

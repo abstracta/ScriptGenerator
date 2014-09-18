@@ -19,7 +19,7 @@ namespace Abstracta.FiddlerSessionComparerCLI
 
             const string pagesResultFile = @"pruebaAuto-Param.txt";
 
-            var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer();
+            var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer(true);
             fiddlerComparer.Load(fiddlerSessionsFile1, fiddlerSessionsFile2, null);
 
             var result = fiddlerComparer.CompareFull();

@@ -86,6 +86,7 @@
     <Compile Include="JMeterGenerator\Validations\AppearTextValidation.cs" />
     <Compile Include="JMeterGenerator\Validations\CheckMainObjectValidation.cs" />
     <Compile Include="JMeterGenerator\Validations\DefaultValidation.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="OSTAGenerator\AuxiliarClasses\DataFile.cs" />
     <Compile Include="OSTAGenerator\AuxiliarClasses\DataFileColumn.cs" />
     <Compile Include="OSTAGenerator\AuxiliarClasses\ParametrizedValue.cs" />
