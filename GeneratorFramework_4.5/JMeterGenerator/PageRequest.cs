@@ -12,6 +12,7 @@ using Abstracta.Generators.Framework.Constants;
 using Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses;
 using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
 using Fiddler;
+using ExtractFrom = Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor.ExtractFrom;
 
 namespace Abstracta.Generators.Framework.JMeterGenerator
 {
@@ -36,10 +37,10 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     Formatting = Formatting.Indented
                 };
 
-                WriteHTTPSample(xmlWriter, MyStep, FiddlerSession, InfoPage, Validations, ParametersToExtract);
+                WriteHTTPSample(xmlWriter, MyStep, FiddlerSession, InfoPage, GetFullURL(InfoPage), Validations, ParametersToExtract);
 
                 // if there aren't follow redirects, then add validations to the primary request
-                if (FollowRedirects.Any(f => f.RedirectType == RedirectType.ByJavaScript))
+                if (FollowRedirects.Count > 0)
                 {
                     // Adding follow Redirects
                     // the last request must have the validations
@@ -59,19 +60,21 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                             MyStep,
                                             followRedirect.FiddlerSession,
                                             followRedirect.InfoPage,
+                                            followRedirect.GetFullURL(followRedirect.InfoPage),
                                             followRedirect.Validations,
                                             followRedirect.ParametersToExtract);
                         }
                         // Disable the follow redirects by response code
+                        // Change :: JMeter encodes the parameters of the redirect URL, producing bad bahaviour
                         else
                         {
                             WriteHTTPSample(xmlWriter,
                                             MyStep,
                                             followRedirect.FiddlerSession,
                                             followRedirect.InfoPage,
+                                            followRedirect.GetFullURL(followRedirect.InfoPage),
                                             followRedirect.Validations,
-                                            followRedirect.ParametersToExtract, 
-                                            followRedirect.RedirectType != RedirectType.ByResponseCode);
+                                            followRedirect.ParametersToExtract);
                         }
                     }
 
@@ -100,7 +103,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
                     foreach (var secondaryRequest in SecondaryRequests)
                     {
-                        WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null);
+                        WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null, secondaryRequest.fullUrl);
                     }
 
                     // </hashTree> 'if' controller
@@ -120,12 +123,12 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             return result;
         }
 
-        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, bool enable = true)
+        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullUrl, bool enable = true)
         {
-            WriteHTTPSample(xmlWriter, myStep, request, page, new List<AbstractValidation>(), new List<AbstractParameterExtractor>(), enable, false);
+            WriteHTTPSample(xmlWriter, myStep, request, page, fullUrl, new List<AbstractValidation>(), new List<AbstractParameterExtractor>(), false, enable);
         }
 
-        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, IEnumerable<AbstractValidation> validations, IEnumerable<AbstractParameterExtractor> parametersToExtract, bool enable = true, bool isPrimary = true)
+        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullURL, IEnumerable<AbstractValidation> validations, IEnumerable<AbstractParameterExtractor> parametersToExtract, bool followRedirects = false, bool enable = true, bool isPrimary = true)
         {
             var httpMethod = request.oRequest.headers.HTTPMethod;
 
@@ -134,10 +137,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             var serverPortName = "${" + HTTPConstants.VariableNamePort + "}";
             const string webAppName = "${" + HTTPConstants.VariableNameWebApp + "}";
 
-            var fullURL = (page != null) ? page.FullURL : request.fullUrl;
-
-            // Agregar solo los requests con server especificado si el check está desactivado
-            if (request.host == myStep.Host)
+            if (request.host == myStep.ServerNameAndPort)
             {
                 urlRequest = httpMethod + " " + fullURL.Replace(myStep.ServerName, serverName);
                 
@@ -266,7 +266,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.contentEncoding", "");
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.path", path);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.method", httpMethod);
-            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.follow_redirects", "true");
+            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.follow_redirects", (followRedirects ? "true" : "false"));
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.auto_redirects", "false");
 
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.use_keepalive", "true");
@@ -316,11 +316,13 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     if (parameter.IsSourceOfValueDefined() && parameter.SourceOfValue is RegExpExtractor)
                     {
                         var valueSource = parameter.SourceOfValue as RegExpExtractor;
-                        var regExp = parameter.IsSourceOfValueDefined()
-                                         ? valueSource.RegExp
-                                         : "No RegExp extractor was defined for this param.";
-                        
+                        var regExp = valueSource.RegExp;
+
+                        var extractFrom = GetExtractFrom(parameter.ExtractParameterFrom);
+                        var usedIn = GetUsedIn(parameter.ParameterTarget);
                         var newValue = new JMeterRegExParameter(
+                            extractFrom,
+                            usedIn,
                             parameter.VariableName,
                             regExp,
                             "$" + valueSource.GroupNumber + "$",
@@ -390,6 +392,36 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             xmlWriter.WriteEndElement();
         }
 
+        private static UseIn GetUsedIn(UseToReplaceIn parameterTarget)
+        {
+            switch (parameterTarget)
+            {
+                case UseToReplaceIn.Body:
+                    return UseIn.Body;
+                case UseToReplaceIn.Url:
+                    return UseIn.Url;
+
+                default:
+                    return UseIn.Body;
+            }
+        }
+
+        private static ExtractFrom GetExtractFrom(FiddlerSessionComparer.ExtractFrom extractParameterFrom)
+        {
+            switch (extractParameterFrom)
+            {
+                case FiddlerSessionComparer.ExtractFrom.Body:
+                    return ExtractFrom.Body;
+                case FiddlerSessionComparer.ExtractFrom.Headers:
+                    return ExtractFrom.Headers;
+                case FiddlerSessionComparer.ExtractFrom.Url:
+                    return ExtractFrom.Url;
+
+                default:
+                    return ExtractFrom.Body;
+            }
+        }
+
         private static void WriteHeaderManager(XmlWriter xmlWriter, Session request)
         {
             JMeterWrapper.WriteStartElement(xmlWriter, "HeaderManager", "HeaderPanel", "HeaderManager", "HTTP Header Manager", "true");
@@ -419,8 +451,8 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
         private static void WriteElement(XmlWriter xmlWriter, object element)
         {
-            var validationString = element.ToString();
-            xmlWriter.WriteRaw(validationString);
+            var elementString = element.ToString();
+            xmlWriter.WriteRaw(elementString);
         }
 
         private static bool IsHeaderExcluded(HTTPHeaderItem header)
@@ -452,7 +484,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
         private static Session GetLastRequestForValidation(IEnumerable<AbstractFollowRedirect> followRedirects)
         {
-            return followRedirects.Last(f => f.RedirectType == RedirectType.ByJavaScript).FiddlerSession;
+            return followRedirects.Last().FiddlerSession;
         }
 
         private static string RemoveParameters(string url)

@@ -4,14 +4,15 @@ using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.AbstractGenerator.Validations;
 using Abstracta.Generators.Framework.OSTAGenerator.ParameterExtractor;
 using Fiddler;
+using ExtractFrom = Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor.ExtractFrom;
 
 namespace Abstracta.Generators.Framework.OSTAGenerator
 {
     internal class Step : AbstractStep
     {
-        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string varName, string expression, string group, string valueToReplace, string description)
+        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
         {
-            return new OSTARegExParameter(varName, expression, group, valueToReplace, description);
+            return new OSTARegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }
 
         protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page)

@@ -7,6 +7,8 @@ namespace Abstracta.FiddlerSessionComparer
 {
     public enum UseToReplaceIn { Url, Body }
 
+    public enum ExtractFrom { Body, Headers, Url, None }
+
     public enum VariableType { HTML, JSONString, JSONInt, JSONBool, ToStringedJSON, Undefined }
 
     public class Parameter
@@ -30,6 +32,13 @@ namespace Abstracta.FiddlerSessionComparer
         public string ExpressionPrefix { get; set; }
 
         public UseToReplaceIn ParameterTarget { get; set; }
+
+        public ExtractFrom ExtractParameterFrom { get; set; }
+
+        public Parameter()
+        {
+            ExtractParameterFrom = ExtractFrom.Body;
+        }
 
         public static void Reset()
         {
@@ -65,8 +74,9 @@ namespace Abstracta.FiddlerSessionComparer
 
                 if (p.ParameterTarget == parameter.ParameterTarget && sameValues)
                 {
-                    if (checkNames && (p.ExpressionPrefix.Contains(parameter.ExpressionPrefix) ||
-                                       parameter.ExpressionPrefix.Contains(p.ExpressionPrefix)))
+                    if (checkNames && p.ExpressionPrefix != null && 
+                        (p.ExpressionPrefix.Contains(parameter.ExpressionPrefix) 
+                        || parameter.ExpressionPrefix.Contains(p.ExpressionPrefix)))
                     {
                         return p;
                     }
@@ -105,8 +115,8 @@ namespace Abstracta.FiddlerSessionComparer
         /// <summary>
         /// Create a regular expression for URL parameters.
         /// </summary>
-        /// <param name="body">Character string to filter the regular expression</param>
-        public void SetRegularExpressionOfParameterFromURL(string body)
+        /// <param name="sourceOfValue">Character string to filter the regular expression</param>
+        public void SetRegularExpressionOfParameterFromURL(string sourceOfValue)
         {
             /* Options:
              *   body is a HTML <a ... href="contenedorpestanas?INS,2,60,893,0,0,,ConsultaActual" ...>...</a>
@@ -122,28 +132,29 @@ namespace Abstracta.FiddlerSessionComparer
             var replaceValue = "?" + Values[0];
             var replaceWith = "?${" + VariableName + "}";
 
-            if (IsHTMLResponse(body))
+            if (IsHTMLResponse(sourceOfValue))
             {
-                var htmlTag = GetTagThatContainsValue(body, Values[0]);
+                var htmlTag = GetTagThatContainsValue(sourceOfValue, Values[0]);
                 if (htmlTag == null)
                 {
                     // need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
-                    Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
+                    Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the source: " + ExpressionPrefix);
                     SetDefaultSourceOfValue();
                     return;
                 }
 
                 if (IsHTMLIframeTag(htmlTag))
                 {
-                    regExp = "<IFRAME .* src=\"" + ExpressionPrefix + "\\?([^\"]+)\".*>";
+                    // <IFRAME .*src=".*hinicionucleo\?([^"]+)".*>
+                    regExp = "<IFRAME .*src=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
                 }
                 else if (IsHTMLAnchorTag(htmlTag))
                 {
-                    regExp = "<a .* href=\"" + ExpressionPrefix + "\\?([^\"]+)\".*>";
+                    regExp = "<a .*href=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
                 }
                 else if (IsHTMLFormTag(htmlTag))
                 {
-                    regExp = "<form .* action=\"" + ExpressionPrefix + "\\?([^\"]+)\".*>";
+                    regExp = "<form .*action=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
                 }
                 else
                 {
@@ -152,19 +163,28 @@ namespace Abstracta.FiddlerSessionComparer
                     regExp = "\"" + ExpressionPrefix + "\\?([^\"]*)\"";
                 }
             }
-            else if (IsJSONResponse(body))
+            else if (IsJSONResponse(sourceOfValue))
             {
                 regExp = "\"" + ExpressionPrefix + "\\?([^\"]+)\"";
+            }
+            else if (ExtractFromHeaders())
+            {
+                regExp = @"Location: http://.*\?(.*)";
             }
             else
             {
                 Utils.Logger.GetInstance().Log("ERROR: Can't calculate RegExpExtractor. Using default for parameter: " + this);
-                Utils.Logger.GetInstance().Log("ERROR: Body isn't HTML and also isn't JSON: " + body);
+                Utils.Logger.GetInstance().Log("ERROR: Body isn't HTML and also isn't JSON: " + sourceOfValue);
 
                 regExp = "\"" + ExpressionPrefix + "\\?([^\"]*)\"";
             }
 
             SourceOfValue = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
+        }
+
+        private bool ExtractFromHeaders()
+        {
+            return ExtractParameterFrom == ExtractFrom.Headers;
         }
 
         /// <summary>
@@ -320,7 +340,13 @@ namespace Abstracta.FiddlerSessionComparer
 
         private static bool IsHTMLResponse(string html)
         {
-            return html.Trim().StartsWith("<!DOCTYPE html");
+            if (html.Length < 25)
+            {
+                return false;
+            }
+
+            var h2 = html.TrimStart().Substring(0, 20).ToLower();
+            return h2.StartsWith("<!doctype html>") || h2.StartsWith("<html>");
         }
 
         private static bool IsJSONResponse(string html)

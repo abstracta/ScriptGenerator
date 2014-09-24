@@ -562,7 +562,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
              // */
 
             const string name = "If (fail) then Log HTTP Response in JMeter.log";
-            const string bsQuery = "\n\tif (vars.get(\"" + HTTPConstants.VariableLogFails + "\") == \"1\")\n" +
+            const string bsQuery = "\n\tif (vars.get(\"" + HTTPConstants.VariableLogFails + "\").equals(\"1\"))\n" +
                                    "\t{\n" +
                                    "\t\tfor (a: SampleResult.getAssertionResults())\n" +
                                    "\t\t{\n" +

@@ -1,12 +1,12 @@
 ﻿namespace Abstracta.FiddlerSessionComparer.Utils
 {
-    internal class NameFactory
+    public class NameFactory
     {
         private static volatile NameFactory _instance;
         private static readonly object Lock = new object();
         private int _id = -1;
 
-        internal static NameFactory GetInstance()
+        public static NameFactory GetInstance()
         {
             if (_instance == null)
             {
@@ -21,12 +21,12 @@
             return _instance;
         }
 
-        internal string GetNewName()
+        public string GetNewName()
         {
-            return "URL_Params" + ++_id;
+            return "URL_Params_Comparer_" + ++_id;
         }
 
-        internal void Reset()
+        public void Reset()
         {
             _id = -1;
         }

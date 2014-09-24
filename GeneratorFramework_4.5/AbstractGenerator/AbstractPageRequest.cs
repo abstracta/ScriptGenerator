@@ -16,6 +16,11 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
     {
         protected AbstractStep MyStep { get; private set; }
 
+        internal int ResponseCode
+        {
+            get { return FiddlerSession.responseCode; }
+        }
+
         internal List<AbstractFollowRedirect> FollowRedirects { get; private set; }
 
         internal List<Session> SecondaryRequests { get; set; }
@@ -49,6 +54,11 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             return redirect;
         }
 
+        internal void AddFollowRedirect(AbstractFollowRedirect followRedirect)
+        {
+            FollowRedirects.Add(followRedirect);
+        }
+
         /// <summary>
         /// Adds the session received as parameter in SecondaryRequest list.
         /// </summary>
@@ -62,11 +72,14 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
         /// Returns the last Primary request of the FollowRedirects list
         /// </summary>
         /// <returns>Last session of the list</returns>
-        internal Session GetLastPrimaryRequest()
+        internal HTTPRequest GetLastPrimaryRequest()
         {
-            return FollowRedirects == null || FollowRedirects.Count == 0
-                       ? FiddlerSession
-                       : FollowRedirects[FollowRedirects.Count - 1].FiddlerSession;
+            if (FollowRedirects == null || FollowRedirects.Count == 0)
+            {
+                return this;
+            }
+
+            return FollowRedirects[FollowRedirects.Count - 1];
         }
 
         /// <summary>

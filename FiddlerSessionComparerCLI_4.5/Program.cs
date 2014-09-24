@@ -40,7 +40,7 @@ namespace Abstracta.FiddlerSessionComparerCLI
                 throw new Exception("Sessions == null");
             }
 
-            var referersChain = new Page(null, "", "", "", "");
+            var referersChain = new Page(null, "", "", "", "", "", -1);
 
             foreach (var session in sessions)
             {
@@ -50,16 +50,18 @@ namespace Abstracta.FiddlerSessionComparerCLI
                 var body = session.HTTPMethodIs("POST") ? session.GetRequestBodyAsString() : "";
                 var htmlResponse = session.GetResponseBodyAsString();
                 var httpmethod = session.oRequest.headers.HTTPMethod;
+                var responseHeaders = string.Join("\n", session.oResponse.headers);
+                var responseCode = session.responseCode;
 
                 var refererPage = referersChain.FindRefererPage(referer, id);
 
                 if (refererPage == null)
                 {
-                    referersChain.Followers.Add(new Page(new Page(null, referer, "", "", ""), uri, body, htmlResponse, httpmethod));
+                    referersChain.Followers.Add(new Page(new Page(null, referer, "", "", "", "", -1), uri, body, htmlResponse, httpmethod, responseHeaders, responseCode));
                 }
                 else
                 {
-                    refererPage.Followers.Add(new Page(refererPage, uri, body, htmlResponse, httpmethod));
+                    refererPage.Followers.Add(new Page(refererPage, uri, body, htmlResponse, httpmethod, responseHeaders, responseCode));
                 }
             }
 

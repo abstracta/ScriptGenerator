@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.AbstractGenerator.Validations;
+using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
 using Fiddler;
 
 namespace Abstracta.Generators.Framework.AbstractGenerator
@@ -35,10 +37,13 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         internal List<AbstractParameterExtractor> ParametersToExtract { get; private set; }
 
+        internal List<AbstractParameterExtractor> ParametersToUse { get; private set; }
+
         internal HTTPRequest()
         {
             Validations = new List<AbstractValidation>();
             ParametersToExtract = new List<AbstractParameterExtractor>();
+            ParametersToUse = new List<AbstractParameterExtractor>();
         }
 
         internal HTTPRequest(Session request)
@@ -46,6 +51,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             FiddlerSession = request;
             Validations = new List<AbstractValidation>();
             ParametersToExtract = new List<AbstractParameterExtractor>();
+            ParametersToUse = new List<AbstractParameterExtractor>();
         }
 
         internal HTTPRequest(Session request, Page infoPage)
@@ -54,12 +60,14 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             FiddlerSession = request;
             Validations = new List<AbstractValidation>();
             ParametersToExtract = new List<AbstractParameterExtractor>();
+            ParametersToUse = new List<AbstractParameterExtractor>();
         }
 
         internal HTTPRequest(List<AbstractValidation> validations)
         {
             Validations = validations;
             ParametersToExtract = new List<AbstractParameterExtractor>();
+            ParametersToUse = new List<AbstractParameterExtractor>();
         }
 
         internal HTTPRequest(Session request, List<AbstractValidation> validations)
@@ -67,6 +75,29 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             FiddlerSession = request;
             Validations = validations;
             ParametersToExtract = new List<AbstractParameterExtractor>();
+            ParametersToUse = new List<AbstractParameterExtractor>();
+        }
+
+        internal void AddParameterToExtract(JMeterRegExParameter newParam)
+        {
+            ParametersToExtract.Add(newParam);
+        }
+
+        internal string GetFullURL(Page infoPage)
+        {
+            if (infoPage != null)
+            {
+                return infoPage.FullURL;
+            }
+
+            var result = _request.fullUrl;
+
+            foreach (var param in ParametersToUse.Where(p => p.UseParameterIn == UseIn.Url))
+            {
+                result = result.Replace(param.ValueToReplace, "${" + param.VariableName + "}");
+            }
+
+            return result;
         }
 
         internal static string ClearParametersFromURL(string url)

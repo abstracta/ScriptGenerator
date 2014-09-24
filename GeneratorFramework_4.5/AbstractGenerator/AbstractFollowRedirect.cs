@@ -1,4 +1,5 @@
 ﻿using Abstracta.FiddlerSessionComparer;
+using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
 
 namespace Abstracta.Generators.Framework.AbstractGenerator
 {
@@ -12,5 +13,10 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
         }
 
         internal RedirectType RedirectType { get; set; }
+
+        public void AddParameterToUse(JMeterRegExParameter parameter)
+        {
+            ParametersToUse.Add(parameter);
+        }
     }
 }

@@ -15,6 +15,8 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _bodyOfPost;
 
+        private readonly string _headers;
+
 		/// <summary>
         /// parameterize the body of a post request.
         /// </summary>
@@ -75,9 +77,11 @@ namespace Abstracta.FiddlerSessionComparer
 
         private string _url;
 
-        public string HTTPMethod {get; set;}
+        public string HTTPMethod { get; set; }
 
-		/// <summary>
+        public int ResponseCode { get; private set; }
+
+        /// <summary>
         /// parameterize the url of a request
         /// </summary>
         public string FullURL
@@ -113,7 +117,7 @@ namespace Abstracta.FiddlerSessionComparer
         
         public List<Page> Followers { get; set; }
 
-        public Page(Page referer, string uri, string body, string htmlResponse, string httpMethod)
+        public Page(Page referer, string uri, string body, string htmlResponse, string httpMethod, string headers, int responseCode)
         {
             Referer = referer;
             Uri = uri;
@@ -121,6 +125,8 @@ namespace Abstracta.FiddlerSessionComparer
             HTTPMethod = httpMethod;
             Body = body;
             HTTPResponse = htmlResponse;
+            _headers = headers;
+            ResponseCode = responseCode;
 
             Followers = new List<Page>();
 
@@ -222,17 +228,21 @@ namespace Abstracta.FiddlerSessionComparer
                     return _parametersToExtract.First(p => p.Values[0] == parameter.Values[0]);
                 }
 
-                // Search the parameter value in the HTML
-                if (HTTPResponse.Contains(parameter.Values[0]))
+                // Search the parameter value in this response
+                var extractFrom = FindParameterInResponse(parameter.Values[0]);
+                if (extractFrom != ExtractFrom.None)
                 {
+                    parameter.ExtractParameterFrom = extractFrom;
+
                     // setting the regular expression
-                    parameter.SetRegularExpressionOfParameterFromURL(HTTPResponse);
+                    parameter.SetRegularExpressionOfParameterFromURL(GetSource(extractFrom));
                     _parametersToExtract.Add(parameter);
                 }
+                // Search the parameter value in the response of other Pages
                 else
                 {
                     // it can be a redirect from another page
-                    var follower = Followers.FirstOrDefault(f => f.HTTPResponse.Contains(parameter.Values[0]));
+                    var follower = Followers.FirstOrDefault(f => f.FindParameterInResponse(parameter.Values[0]) != ExtractFrom.None);
                     if (follower != null)
                     {
                         parameter = follower.AddParameterToExtract(parameter);
@@ -254,7 +264,45 @@ namespace Abstracta.FiddlerSessionComparer
             return parameter;
         }
 
-		/// <summary>
+        private ExtractFrom FindParameterInResponse(string parameterValue)
+        {
+            if (HTTPResponse.Contains(parameterValue))
+            {
+                return ExtractFrom.Body;
+            }
+            
+            if (_headers.Contains(parameterValue))
+            {
+                return ExtractFrom.Headers;
+            }
+
+            if (_url.Contains(parameterValue))
+            {
+                return ExtractFrom.Url;
+            }
+
+            return ExtractFrom.None;
+        }
+
+        private string GetSource(ExtractFrom extractParameterFrom)
+        {
+            switch (extractParameterFrom)
+            {
+                case ExtractFrom.Body:
+                    return HTTPResponse;
+
+                case ExtractFrom.Headers:
+                    return _headers;
+
+                case ExtractFrom.Url:
+                    return _url;
+
+                default:
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Returns the referer page of the actual page
         /// </summary>
         /// <param name="referer">referer uri</param>
@@ -262,11 +310,24 @@ namespace Abstracta.FiddlerSessionComparer
         /// <returns>Referer page</returns>
         public Page FindRefererPage(string referer, int childId)
         {
-            // compares the current's page uri with the referers uri, and makes sure the referal page is prior to the child by comparing fiddler ids
-            return (Uri == referer && childId > Id)
-                       ? this
-                       : Followers.Select(follower => follower.FindRefererPage(referer, childId))
-                                  .FirstOrDefault(result => result != null);
+            // Compares backwards
+            for (var i = Followers.Count -1 ; i >= 0; i--)
+            {
+                var pageResult = Followers[i].FindRefererPage(referer, childId);
+                if (pageResult != null)
+                {
+                    return pageResult;
+                }
+            }
+
+            // compares the current's page uri with the referers uri, 
+            // makes sure the referal page is prior to the child by comparing fiddler ids
+            if (Uri == referer && childId > Id)
+            {
+                return this;
+            } 
+            
+            return null;
         }
 
 		/// <summary>
@@ -293,6 +354,8 @@ namespace Abstracta.FiddlerSessionComparer
             var urlReferer = session.oRequest.headers["Referer"];
             var referer = FindRefererPage(urlReferer, id);
             var httpMethod = session.oRequest.headers.HTTPMethod;
+            var headers = string.Join("\n", session.oResponse.headers);
+		    var responseCode = session.responseCode;
 
             if (referer == null)
             {
@@ -303,7 +366,7 @@ namespace Abstracta.FiddlerSessionComparer
             var body = session.HTTPMethodIs("POST") ? session.GetRequestBodyAsString() : "";
             var htmlResponse = session.GetResponseBodyAsString();
 
-            var result = new Page(referer, uri, body, htmlResponse, httpMethod)
+            var result = new Page(referer, uri, body, htmlResponse, httpMethod, headers, responseCode)
             {
                 Id = id,
                 RefererURL = urlReferer,
@@ -344,6 +407,27 @@ namespace Abstracta.FiddlerSessionComparer
             return slist;
         }
 
+        public void AddPreparedParameterToExtract(Parameter parameter)
+        {
+            Parameter.AddParameterToMainList(parameter);
+
+            _parametersToExtract.Add(parameter);
+        }
+
+        public void AddPreparedParameterToUse(Parameter parameter)
+        {
+            _parametersToUse.Add(parameter);
+        }
+
+        public void DeleteAllParametersToUseInURL()
+        {
+            var paramsToUseInURL = _parametersToUse.Where(p => p.ParameterTarget == UseToReplaceIn.Url).ToList();
+            foreach (var paramToUseInURL in paramsToUseInURL)
+            {
+                _parametersToUse.Remove(paramToUseInURL);
+            }
+        }
+
         private static void AddFollowersToList(Page pag, IDictionary<int, Page> list)
         {
             foreach (var p in pag.Followers)
@@ -354,6 +438,11 @@ namespace Abstracta.FiddlerSessionComparer
                     AddFollowersToList(p, list);
                 }
             }
+        }
+
+        public List<Parameter> GetParametersToUseInURL()
+        {
+            return _parametersToUse.Where(p => p.ParameterTarget == UseToReplaceIn.Url).ToList();
         }
     }
 }

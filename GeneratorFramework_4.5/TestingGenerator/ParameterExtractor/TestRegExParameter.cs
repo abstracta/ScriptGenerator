@@ -1,15 +1,17 @@
-﻿namespace Abstracta.Generators.Framework.TestingGenerator.ParameterExtractor
+﻿using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
+
+namespace Abstracta.Generators.Framework.TestingGenerator.ParameterExtractor
 {
-    internal class TestRegExParameter : AbstractGenerator.ParameterExtractor.AbstractRegExParameter
+    internal class TestRegExParameter : AbstractRegExParameter
     {
-        internal TestRegExParameter(string varibleName, string regularExpression, string group, string valueToReplace, string description)
-            : base(varibleName, regularExpression, group, valueToReplace, description)
+        internal TestRegExParameter(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varibleName, string regularExpression, string group, string valueToReplace, string description)
+            : base(extractParameterFrom, useParameterIn, varibleName, regularExpression, group, valueToReplace, description)
         {
         }
 
         public override string ToString()
         {
-            return "Extracted Parameter from Redirect Response: " + VariableName + ": " + RegularExpression;
+            return "Extracted Parameter from Response: " + VariableName + ": " + RegularExpression + ": " + ExtractParameterFrom + ": " + ValueToReplace;
         }
     }
 }

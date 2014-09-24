@@ -26,7 +26,7 @@
 
         internal string GetNewName()
         {
-            return "NameGenerator_URL_Params" + ++_id;
+            return "URL_Params_Generator_" + ++_id;
         }
     }
 }

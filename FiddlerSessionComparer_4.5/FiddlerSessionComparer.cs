@@ -194,7 +194,7 @@ namespace Abstracta.FiddlerSessionComparer
         {
             VerifySessionsLoaded();
 
-            var rootPage = new Page(null, "", "", "", "");
+            var rootPage = new Page(null, "", "", "", "", "", -1);
 
             var s1Count = _sessions1.Count();
             var s2Count = _sessions2.Count();
@@ -340,6 +340,9 @@ namespace Abstracta.FiddlerSessionComparer
 
             var page = rootPage.CreateAndInsertPage(s1);
 
+            var redirectByCode = 299 < page.Referer.ResponseCode && page.Referer.ResponseCode < 400;
+            var sourceOfParameter = redirectByCode ? ExtractFrom.Headers : ExtractFrom.Body;
+
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
@@ -365,6 +368,7 @@ namespace Abstracta.FiddlerSessionComparer
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
                             ParameterTarget = UseToReplaceIn.Url,
+                            ExtractParameterFrom = sourceOfParameter,
                         };
 
                     parameter = page.Referer.AddParameterToExtract(parameter);
@@ -385,6 +389,7 @@ namespace Abstracta.FiddlerSessionComparer
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
                             ParameterTarget = UseToReplaceIn.Url,
+                            ExtractParameterFrom = sourceOfParameter,
                         };
 
                         parameter = page.Referer.AddParameterToExtract(parameter);
@@ -406,6 +411,7 @@ namespace Abstracta.FiddlerSessionComparer
                             VariableName = varName,
                             ExpressionPrefix = expressionPrefix,
                             ParameterTarget = UseToReplaceIn.Url,
+                            ExtractParameterFrom = sourceOfParameter,
                         };
 
                         parameter = page.Referer.AddParameterToExtract(parameter);
@@ -518,27 +524,27 @@ namespace Abstracta.FiddlerSessionComparer
                 // parametrize allways 
                 case ComparerResultType.ShowAll:
                     if (IsParametrized(temp2))
-                        {
-                            Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
-                        }
-                        else
-                        {
-                            varName = NameFactory.GetInstance().GetNewName();
+                    {
+                        Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
+                    }
+                    else
+                    {
+                        varName = NameFactory.GetInstance().GetNewName();
 
-                            parameter = new Parameter
+                        parameter = new Parameter
                             {
                                 ExtractedFromPage = p2.Referer,
                                 UsedInPages = new List<Page>(),
-                                Values = new List<string> { temp1, temp2 },
+                                Values = new List<string> {temp1, temp2},
                                 VariableName = varName,
                                 ExpressionPrefix = expressionPrefix,
                                 ParameterTarget = UseToReplaceIn.Url,
                             };
 
-                            parameter = p2.Referer.AddParameterToExtract(parameter);
-                            p2.AddParameterToUse(parameter);
-                        }
-                                        
+                        parameter = p2.Referer.AddParameterToExtract(parameter);
+                        p2.AddParameterToUse(parameter);
+                    }
+
                     break;
 
                 // parametrize when different
@@ -567,7 +573,7 @@ namespace Abstracta.FiddlerSessionComparer
                                 p2.AddParameterToUse(parameter);
                             }
                     }
-                    else if ((temp1 == null) && (temp2 ==null))
+                    else if ((temp1 == null) && (temp2 == null))
                     {
                             Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url without parameters");
                     }
@@ -577,10 +583,12 @@ namespace Abstracta.FiddlerSessionComparer
                 case ComparerResultType.HideNullOrEquals:
                     if (temp1 != null && temp2 != null && temp1 != temp2)
                     {
-                        if (IsParametrized(temp2)){
+                        if (IsParametrized(temp2))
+                        {
                             Utils.Logger.GetInstance().Log("Result of compare session " + s1.id + " and page " + p2.Id + ": same url and parametrized");
                         }
-                        else{
+                        else
+                        {
                             varName = NameFactory.GetInstance().GetNewName();
 
                             parameter = new Parameter

@@ -6,8 +6,8 @@
 
         internal string Group { get; set; }
 
-        protected AbstractRegExParameter(string variableName, string regularExpression, string group, string valueToReplace, string description)
-            : base(variableName, valueToReplace, description)
+        protected AbstractRegExParameter(ExtractFrom extractParameterFrom, UseIn useParameterIn, string variableName, string regularExpression, string group, string valueToReplace, string description)
+            : base(extractParameterFrom, useParameterIn, variableName, valueToReplace, description)
         {
             RegularExpression = regularExpression;
             Group = group;

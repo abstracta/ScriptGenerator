@@ -1,13 +1,14 @@
 ﻿using System.IO;
 using System.Xml;
+using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses;
 
 namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
 {
-    internal class JMeterRegExParameter : AbstractGenerator.ParameterExtractor.AbstractRegExParameter
+    internal class JMeterRegExParameter : AbstractRegExParameter
     {
-        internal JMeterRegExParameter(string varibleName, string regularExpression, string group, string valueToReplace, string description)
-            : base(varibleName, regularExpression, group, valueToReplace, description)
+        internal JMeterRegExParameter(ExtractFrom extractParameterFrom, UseIn useParameterIn, string variableName, string regularExpression, string group, string valueToReplace, string description)
+            : base(extractParameterFrom, useParameterIn, variableName, regularExpression, group, valueToReplace, description)
         {
         }
 
@@ -26,6 +27,16 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
              * */
 
             string result;
+            var useHeaders = "false";
+            switch (ExtractParameterFrom)
+            {
+                    case ExtractFrom.Headers:
+                        useHeaders = "true";
+                    break;
+                    case ExtractFrom.Url:
+                        useHeaders = "URL";
+                    break;
+            }
 
             using (var stream = new MemoryStream())
             {
@@ -37,7 +48,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
 
                 JMeterWrapper.WriteStartElement(xmlWriter, "RegexExtractor", "RegexExtractorGui", "RegexExtractor", "RegExp Extractor - " + VariableName, "true");
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "TestPlan.comments", Description);
-                JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", "false");
+                JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", useHeaders);
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.refname", VariableName);
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.regex", RegularExpression);
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", Group);

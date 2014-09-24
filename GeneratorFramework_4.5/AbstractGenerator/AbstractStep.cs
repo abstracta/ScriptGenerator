@@ -6,9 +6,11 @@ using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator.Extensions;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.AbstractGenerator.Validations;
+using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
 using Fiddler;
 using GxTest.Utils.EnumTypes;
 using Newtonsoft.Json.Linq;
+using ExtractFrom = Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor.ExtractFrom;
 
 namespace Abstracta.Generators.Framework.AbstractGenerator
 {
@@ -27,7 +29,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         internal string ServerPort { get; set; }
 
-        internal string Host
+        internal string ServerNameAndPort
         {
             get
             {
@@ -68,27 +70,84 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                     var lastPageRequest = Requests.Last();
 
                     // todo: should use the referer request instead of LastPrimaryRequest?
-                    var fiddlerSessionOfLastPageRequest = lastPageRequest.GetLastPrimaryRequest();
-                   
+                    var lastFollowRedirectPage = lastPageRequest.GetLastPrimaryRequest();
+                    var fiddlerSessionOfLastPageRequest = lastFollowRedirectPage.FiddlerSession;
+                    
                     // the response code of the previous request was a redirect
                     if (fiddlerSessionOfLastPageRequest.IsRedirectByResponseCode())
                     {
-                        var validations = new List<AbstractValidation> { CreateDefaultValidationFromRequest(httpReq) };
-                        lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByResponseCode, page, validations);
+                        var followRedirect = new AbstractFollowRedirect(httpReq, RedirectType.ByResponseCode, page);
+                        followRedirect.Validations.Add(CreateDefaultValidationFromRequest(httpReq));
+
+                        // if there are parameters in the URL, need to extract them to use in current request
+                        var urlParameters = GetParametersFromURL(httpReq.fullUrl);
+                        if (urlParameters != string.Empty)
+                        {
+                            const string regExp = @"Location: http://.*\?(.*)";
+
+                            // if there aren't parameters to extract and to use created in the comparer, then create it here
+                            if (page == null)
+                            {
+                                var paramName = NameGenerator.GetInstance().GetNewName();
+
+                                // add parameter to extract
+                                var newParam = new JMeterRegExParameter(
+                                    ExtractFrom.Headers,
+                                    UseIn.Url,
+                                    paramName,
+                                    regExp,
+                                    "$1$",
+                                    urlParameters,
+                                    "Used in pages: { " + httpReq.id + " } Original value: " + urlParameters);
+
+                                lastFollowRedirectPage.AddParameterToExtract(newParam);
+
+                                // modify url to use the parameter
+                                followRedirect.AddParameterToUse(newParam);
+                            }
+                            else
+                            {
+                                var paramName = NameGenerator.GetInstance().GetNewName();
+
+                                // there are alredy parameters to use in the URL, don't add a newone
+                                if (page.GetParametersToUseInURL().Count == 0)
+                                {
+                                    var param = new Parameter
+                                        {
+                                            ParameterTarget = UseToReplaceIn.Url,
+                                            ExtractParameterFrom = FiddlerSessionComparer.ExtractFrom.Headers,
+                                            ExtractedFromPage = lastFollowRedirectPage.InfoPage,
+                                            UsedInPages = new List<Page> {page},
+                                            VariableName = paramName,
+                                            Values = new List<string> {urlParameters},
+                                            SourceOfValue =
+                                                new RegExpExtractor(1, regExp, urlParameters, "${" + paramName + "}"),
+                                        };
+
+                                    lastFollowRedirectPage.InfoPage.AddPreparedParameterToExtract(param);
+                                    page.AddPreparedParameterToUse(param);
+                                }
+                            }
+                        }
+                        
+                        lastPageRequest.AddFollowRedirect(followRedirect);
+
+                        lastFollowRedirectPage.Validations.Clear();
+                        lastFollowRedirectPage.Validations.Add(CreateResponseCodeValidation(lastPageRequest.ResponseCode));
                     }
                     // the response code of the previous request was a redirect
                     else if (fiddlerSessionOfLastPageRequest.IsRedirectByJavaScript())
                     {
                         var validations = new List<AbstractValidation> { CreateDefaultValidationFromRequest(httpReq) };
                         lastPageRequest.AddFollowRedirect(httpReq, RedirectType.ByJavaScript, page, validations);
+                        lastPageRequest.Validations.Clear();
+                        lastPageRequest.Validations.Add(CreateResponseCodeValidation(200));
 
                         // Add validation to the followRedirect: HTTP "200" + Content "Redirect"
                         if (fiddlerSessionOfLastPageRequest.IsGenexusRedirect())
                         {
-                            lastPageRequest.Validations.Clear();
                             lastPageRequest.Validations.Add(CreateAppearTextValidation("redirect", "This HTML should be a javascript redirect", false, true));
-                            lastPageRequest.Validations.Add(CreateResponseCodeValidation(200));
-
+                         
                             // This is done just when comparing two fiddler sessions
                             ////var parametersExtractor = CreateRegExpExtractorToGetRedirectParameters(lastPageRequest.FiddlerSession.GetResponseBodyAsString());
                             ////if (parametersExtractor != null)
@@ -259,13 +318,13 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
                 // e.g. "{"gxCommands":[{"redirect":{"url":"historiaclinicaprincipalv2?INS,0,1,3","forceDisableFrm":1}}]}"
                 var expression = url.Substring(0, index) + "(\\?[^\"]*)\"";
-                return CreateRegExpExtractorToGetRedirectParameters(NameGenerator.GetInstance().GetNewName(), expression, "$1$", valueToReplace, desc);
+                return CreateRegExpExtractorToGetRedirectParameters(ExtractFrom.Body, UseIn.Url, NameGenerator.GetInstance().GetNewName(), expression, "$1$", valueToReplace, desc);
             }
 
             return null;
         }
 
-        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(string bodyAsString, string expression, string group, string valueToReplace, string description);
+        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string bodyAsString, string expression, string group, string valueToReplace, string description);
 
         protected abstract AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page);
 
@@ -295,12 +354,30 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         private static bool IsHTMLResponse(string html)
         {
-            return html.Trim().StartsWith("<!DOCTYPE html>");
+            if (html.Length < 25)
+            {
+                return false;
+            }
+
+            var h2 = html.TrimStart().Substring(0, 20).ToLower();
+            return h2.StartsWith("<!doctype html>") || h2.StartsWith("<html>");
         }
 
         private static bool IsJSONResponse(string html)
         {
             return html.Trim().StartsWith("{");
+        }
+
+        private static string GetPathFromURL(string url)
+        {
+            var temp1 = url.Split('?');
+            return temp1.Length == 1 ? url : temp1[0];
+        }
+
+        private static string GetParametersFromURL(string url)
+        {
+            var temp1 = url.Split('?');
+            return temp1.Length == 1 ? string.Empty : temp1[1];
         }
     }
 }
