@@ -116,6 +116,8 @@ namespace Abstracta.Generators.Framework
             var dataPools = ScriptWrapper.GetDataPools();
             generator.AddDataPools(dataPools, DataPoolsPath);
 
+            var stepIndex = 0;
+
             // add each command as a step in the generator
             var commands = ScriptWrapper.GetCommands();
             foreach (var command in commands)
@@ -125,11 +127,13 @@ namespace Abstracta.Generators.Framework
                     case "Action":
                     case "Event":
                         {
-                            var step = generator.AddStep(command.Name, command.Type, command.Desc, this);
+                            var step = generator.AddStep(command.Name, command.Type, command.Desc, this, stepIndex);
                             foreach (var httpReq in command.RequestIds.Select(requestId => FiddlerSessions[0].GetRequest(requestId)))
                             {
                                 step.AddRequest(httpReq, _resultOfComparer);
                             }
+
+                            stepIndex++;
                         }
                         break;
                     case "Validation":

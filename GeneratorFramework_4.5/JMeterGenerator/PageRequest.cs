@@ -171,7 +171,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             if (urlRequest == string.Empty) return;
 
             // "GET http://${server}/${webApp}/home.aspx?${param1},etc"
-            JMeterWrapper.WriteStartElement(xmlWriter, "HTTPSamplerProxy", "HttpTestSampleGui", "HTTPSamplerProxy",
+            JMeterWrapper.WriteStartElement(xmlWriter, "HTTPSamplerProxy", "HttpTestSampleGui", "HTTPSamplerProxy", myStep.Index + " " +
                                           RemoveParameters(urlRequest), (enable ? "true" : "false"));
 
             switch (httpMethod.ToLower())

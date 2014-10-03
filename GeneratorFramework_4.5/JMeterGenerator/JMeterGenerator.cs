@@ -17,7 +17,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             _dataPools.AddRange(dataPools);
         }
 
-        internal override AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator)
+        internal override AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator, int index)
         {
             string servName, servPort;
             GetServerAndPortFromServerName(generator.ServerName, out servName, out servPort);
@@ -30,6 +30,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     ServerName = servName,
                     ServerPort = servPort,
                     WebApp = generator.WebAppName,
+                    Index = index,
                 };
 
             AddStep(newStep);
@@ -178,16 +179,13 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
             JMeterWrapper.WriteExampleOfRegExpExtractor(xmlWriter);
 
-            var stepIndex = 0;
             foreach (var step in Steps)
             {
-                step.Name = GetStepName(Steps.Count, stepIndex, step.Type, step.Name);
+                step.Name = GetStepName(Steps.Count, step.Index, step.Type, step.Name);
                 
                 xmlWriter.WriteRaw(step.ToString());
                 
                 JMeterWrapper.WriteThinkTime(xmlWriter, ThinktimeType.Medium);
-
-                stepIndex++;
             }
         }
 

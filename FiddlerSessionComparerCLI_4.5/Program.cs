@@ -44,13 +44,21 @@ namespace Abstracta.FiddlerSessionComparerCLI
 
             foreach (var session in sessions)
             {
+                var i = 0;
+                var headersArray = new string[session.oResponse.headers.Count()];
+                foreach (var httpResponseHeader in session.oResponse.headers)
+                {
+                    headersArray[i] = httpResponseHeader.ToString();
+                    i++;
+                }
+
                 var referer = session.oRequest.headers["Referer"];
                 var id = session.id;
                 var uri = session.fullUrl;
                 var body = session.HTTPMethodIs("POST") ? session.GetRequestBodyAsString() : "";
                 var htmlResponse = session.GetResponseBodyAsString();
                 var httpmethod = session.oRequest.headers.HTTPMethod;
-                var responseHeaders = string.Join("\n", session.oResponse.headers);
+                var responseHeaders = string.Join("\n", headersArray);
                 var responseCode = session.responseCode;
 
                 var refererPage = referersChain.FindRefererPage(referer, id);

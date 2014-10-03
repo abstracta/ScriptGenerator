@@ -39,6 +39,8 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         internal string WebApp { get; set; }
 
+        internal int Index { get; set; }
+
         internal CommandType Type { get; set; }
 
         internal void AddRequest(Session httpReq, Page page)

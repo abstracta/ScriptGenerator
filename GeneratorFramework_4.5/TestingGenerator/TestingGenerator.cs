@@ -12,7 +12,7 @@ namespace Abstracta.Generators.Framework.TestingGenerator
         {
         }
 
-        internal override AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator)
+        internal override AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator, int index)
         {
             var tmp = generator.ServerName.Split(':');
 
@@ -36,6 +36,7 @@ namespace Abstracta.Generators.Framework.TestingGenerator
                 ServerName = servName,
                 ServerPort = servPort,
                 WebApp = generator.WebAppName,
+                Index = index,
             };
 
             AddStep(newStep);

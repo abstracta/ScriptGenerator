@@ -11,7 +11,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         internal abstract void AddDataPools(List<DataPool> dataPools, string dataPoolFilesPath);
 
-        internal abstract AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator);
+        internal abstract AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator, int index);
 
         internal virtual void Initialize(string outPath, string mainScriptName, string serverName, string webAppName)
         {

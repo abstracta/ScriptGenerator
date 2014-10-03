@@ -348,13 +348,21 @@ namespace Abstracta.FiddlerSessionComparer
         /// <param name="session">Session</param>
         /// <returns>page created</returns>
         public Page CreateAndInsertPage(Session session)
-        {
+		{
+		    var i = 0;
+            var headersArray = new string[session.oResponse.headers.Count()];
+		    foreach (var httpResponseHeader in session.oResponse.headers)
+		    {
+		        headersArray[i] = httpResponseHeader.ToString();
+		        i++;
+		    }
+
             var id = session.id;
             var uri = session.fullUrl;
             var urlReferer = session.oRequest.headers["Referer"];
             var referer = FindRefererPage(urlReferer, id);
             var httpMethod = session.oRequest.headers.HTTPMethod;
-            var headers = string.Join("\n", session.oResponse.headers);
+            var headers = string.Join("\n", headersArray);
 		    var responseCode = session.responseCode;
 
             if (referer == null)

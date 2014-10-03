@@ -569,6 +569,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
                                    "\t\t\tif (a.isError() || a.isFailure())\n" +
                                    "\t\t\t{\n" +
                                    "\t\t\t\tlog.error(\n" +
+                                   "\t\t\t\t\tSamplerData + \": \" + \n" + 
                                    "\t\t\t\t\tThread.currentThread().getName() + \n" +
                                    "\t\t\t\t\t\": \" + \n" +
                                    "\t\t\t\t\tSampleLabel + \n" +
