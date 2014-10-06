@@ -362,7 +362,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
             }
 
             var h2 = html.TrimStart().Substring(0, 20).ToLower();
-            return h2.StartsWith("<!doctype html>") || h2.StartsWith("<html>");
+            return h2.StartsWith("<!doctype html") || h2.StartsWith("<html");
         }
 
         private static bool IsJSONResponse(string html)
