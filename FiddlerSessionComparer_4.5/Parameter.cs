@@ -129,8 +129,8 @@ namespace Abstracta.FiddlerSessionComparer
             //*/
 
             string regExp;
-            var replaceValue = "?" + Values[0];
-            var replaceWith = "?${" + VariableName + "}";
+            var replaceValue = Values[0];
+            var replaceWith = "${" + VariableName + "}";
 
             if (IsHTMLResponse(sourceOfValue))
             {

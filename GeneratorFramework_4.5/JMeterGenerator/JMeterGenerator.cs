@@ -193,7 +193,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
         {
             string stepStr;
 
-            var digitsNumber = (totalSteps < 9) ? 1 : ((totalSteps < 99) ? 2 : 3);
+            var digitsNumber = (totalSteps <= 9) ? 1 : ((totalSteps <= 99) ? 2 : 3);
             switch (digitsNumber)
             {
                 case 1:
@@ -201,15 +201,15 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     break;
 
                 case 2:
-                    stepStr = "Step " + ((stepIndex < 9) ? "0" + stepIndex : "" + stepIndex)
+                    stepStr = "Step " + ((stepIndex <= 9) ? "0" + stepIndex : "" + stepIndex)
                               + " - " + stepType + " " + stepName;
                     break;
 
                 default:
-                    stepStr = "Step " + ((stepIndex < 9)
+                    stepStr = "Step " + ((stepIndex <= 9)
                                              ? "00" + stepIndex
-                                             : ((stepIndex < 99) ? "0" + stepIndex : "" + stepIndex))
-                              + " - " + stepType + " " + stepName;
+                                             : ((stepIndex <= 99) ? "0" + stepIndex : "" + stepIndex))
+                                                + " - " + stepType + " " + stepName;
                     break;
             }
 
