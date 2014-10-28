@@ -50,6 +50,18 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                     return ParametersType.TargetDataPool;
                 case "Combo":
                     return ParametersType.Combo;
+                case "User":
+                    return ParametersType.User;
+                case "Password":
+                    return ParametersType.Password;
+                case "Object Name":
+                    return ParametersType.ObjectName;
+                case "Aditional Parameters":
+                    return ParametersType.AditionalParameters;
+                case "Menu":
+                    return ParametersType.Menu;
+                case "Variable":
+                    return ParametersType.Variable;
                 default:
                     throw new Exception("ParameterName unknown: " + parameterName);
             }

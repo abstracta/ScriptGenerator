@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using System.Xml;
 using Abstracta.Generators.Framework;
 using Fiddler;
 
@@ -14,6 +15,17 @@ namespace Abstracta.ScriptGenerator
         public MainWindow()
         {
             InitializeComponent();
+
+            const string path = @"D:\Abstracta\Desarrollo\GitHubAbstractaTools\ScriptGenerator\trunk\Examples\BPS\";
+
+            Host.Text = "srvh265:8080";
+            AppName.Text = "PrestamosEvo";
+            FiddlerFileName1.Text = path + "sessions.saz";
+            // FiddlerFileName2.Text = path + "OT2.saz";
+            GxTestFile.Text = path + "Ingreso de vales PASIVOS_script.xml";
+            ResultFolderName.Text = path;
+
+            ReplaceInBodies.IsChecked = false;
         }
 
         private void GenerateScript(object sender, RoutedEventArgs e)
@@ -72,9 +84,17 @@ namespace Abstracta.ScriptGenerator
                     }
                 }
 
+                XmlDocument gxTest = null;
+                var gxTestFile = GxTestFile.Text;
+                if (File.Exists(gxTestFile))
+                {
+                    gxTest = new XmlDocument();
+                    gxTest.Load(gxTestFile);
+                }
+
                 var replaceInBodies = ReplaceInBodies.IsChecked != null && ReplaceInBodies.IsChecked.Value;
 
-                var generator = new Generators.Framework.ScriptGenerator(path, path, null, sessions, host, appName, replaceInBodies);
+                var generator = new Generators.Framework.ScriptGenerator(path, path, gxTest, sessions, host, appName, replaceInBodies);
                 generator.GenerateScripts(GeneratorType.JMeter);
                 generator.GenerateScripts(GeneratorType.Testing);
             }

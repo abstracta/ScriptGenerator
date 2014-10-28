@@ -14,6 +14,12 @@
         Value,
         Parameters,
         TargetDataPool,
-        Combo
+        Combo,
+        User,
+        Password,
+        ObjectName,
+        AditionalParameters,
+        Menu,
+        Variable,
     }
 }

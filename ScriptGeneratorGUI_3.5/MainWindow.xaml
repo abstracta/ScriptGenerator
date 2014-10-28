@@ -10,17 +10,21 @@
         <Label Content="Application name" HorizontalAlignment="Left" Margin="350,25,0,0" VerticalAlignment="Top" Height="35" Width="105"/>
         <TextBox Name="AppName" HorizontalAlignment="Left" Height="30" Margin="475,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
 
-        <Label Content="Fiddler Session 1" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="FiddlerFileName1" HorizontalAlignment="Left" Height="30" Margin="125,65,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+        <Label Content="XML GxTest File" HorizontalAlignment="Left" Margin="10,77,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="GxTestFile" HorizontalAlignment="Left" Height="30" Margin="125,77,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
-        <Label Content="Fiddler Session 2" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="FiddlerFileName2" HorizontalAlignment="Left" Height="30" Margin="125,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
-        <Label Content="Result Folder" HorizontalAlignment="Left" Margin="10,135,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,135,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+        <Label Content="Fiddler Session 1" HorizontalAlignment="Left" Margin="10,117,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="FiddlerFileName1" HorizontalAlignment="Left" Height="30" Margin="125,117,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
-        <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="0,180,0,0" VerticalAlignment="Top" Width="145" Click="GenerateScript"/>
-        <CheckBox Content="ReplaceInBodies?" HorizontalAlignment="Left" Margin="125,183,0,0" VerticalAlignment="Top" Name="ReplaceInBodies"/>
+        <Label Content="Fiddler Session 2" HorizontalAlignment="Left" Margin="10,152,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="FiddlerFileName2" HorizontalAlignment="Left" Height="30" Margin="125,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+
+        <Label Content="Result Folder" HorizontalAlignment="Left" Margin="10,187,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
+        <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,187,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+
+        <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="274,232,274,0" VerticalAlignment="Top" Width="146" Click="GenerateScript"/>
+        <CheckBox Content="ReplaceInBodies?" HorizontalAlignment="Left" Margin="125,235,0,0" VerticalAlignment="Top" Name="ReplaceInBodies"/>
     </Grid>
 
     <Window.Resources>

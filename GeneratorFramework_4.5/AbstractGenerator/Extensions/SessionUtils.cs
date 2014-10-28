@@ -21,10 +21,9 @@ namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
         // blacklist de cookies para dejar hardcodeadas
         internal static List<string> Cookies = null;
 
-        private static readonly string[] PrimaryExtensions = new[]
-            {".htm", ".html", ".aspx", ".ashx", ".php", "faces", "svc", ".svc/"};
+        //// private static readonly string[] PrimaryExtensions = new[] {".htm", ".html", ".aspx", ".ashx", ".php", "faces", "svc", ".svc/"};
 
-        // private static readonly string[] SecondaryExtensions = new[] {".js", ".css", ".jpg", ".jpeg", ".png", ".gif"};
+        private static readonly string[] SecondaryExtensions = new[] {".js", ".css", ".jpg", ".jpeg", ".png", ".gif"};
 
         internal static bool IsPrimaryReq(Session req)
         {
@@ -35,11 +34,18 @@ namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
             // nuevas extensiones a ser consideradas pedidos primarios.
             var uri = new Uri(req.fullUrl);
 
-            return (PrimaryExtensions.Any(primaryExtension => uri.LocalPath.EndsWith(primaryExtension))
+            var isSecondaryReq = SecondaryExtensions.Any(h => uri.LocalPath.EndsWith(h));
+            var isSecondaryReq2 = isSecondaryReq || SecondaryExtensions.Any(h => uri.LocalPath.Contains(h + "?"));
+            var isSecondaryReq3 = isSecondaryReq2 || uri.LocalPath.Contains("GXResourceProv");
+
+            return !isSecondaryReq3;
+
+            /* 
+                 return (PrimaryExtensions.Any(primaryExtension => uri.LocalPath.EndsWith(primaryExtension))
                     || BuscarEnArchivoExtensiones(uri.LocalPath)
                     || uri.LocalPath.Split('.').Length == 1)
-                    || PrimaryExtensions.Any(primaryExtension => uri.LocalPath.Contains(primaryExtension))
                    && !uri.LocalPath.Contains("GXResourceProv");
+             */
         }
 
         // NP - 23/01/2014
