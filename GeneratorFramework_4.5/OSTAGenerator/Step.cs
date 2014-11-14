@@ -1,4 +1,5 @@
-﻿using Abstracta.FiddlerSessionComparer;
+﻿using System.Collections.Generic;
+using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.AbstractGenerator.Validations;
@@ -10,7 +11,7 @@ namespace Abstracta.Generators.Framework.OSTAGenerator
 {
     internal class Step : AbstractStep
     {
-        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
+        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
         {
             return new OSTARegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }

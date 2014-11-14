@@ -1,4 +1,6 @@
-﻿namespace Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor
+﻿using System.Collections.Generic;
+
+namespace Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor
 {
     public enum ExtractFrom { Body, Headers, Url }
     public enum UseIn { Body, Url }
@@ -13,9 +15,9 @@
 
         internal ExtractFrom ExtractParameterFrom { get; private set; }
 
-        internal UseIn UseParameterIn { get; private set; }
+        internal List<UseIn> UseParameterIn { get; private set; }
 
-        protected AbstractParameterExtractor(ExtractFrom extractParameterFrom, UseIn useParameterIn, string variableName, string valueToReplace, string description)
+        protected AbstractParameterExtractor(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string variableName, string valueToReplace, string description)
         {
             ExtractParameterFrom = extractParameterFrom;
             UseParameterIn = useParameterIn;

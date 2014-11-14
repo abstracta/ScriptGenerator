@@ -1,6 +1,9 @@
 rmdir /S /Q Common\bin
 rmdir /S /Q Common\obj
 
+rmdir /S /Q "FiddlerSessionComparerTests_4.5\bin"
+rmdir /S /Q "FiddlerSessionComparerTests_4.5\obj"
+
 rmdir /S /Q "FiddlerSessionComparer_3.5\bin"
 rmdir /S /Q "FiddlerSessionComparer_3.5\obj"
 rmdir /S /Q "FiddlerSessionComparer_4.5\bin"

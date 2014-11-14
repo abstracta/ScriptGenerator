@@ -70,15 +70,6 @@
     <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\DataPool.cs">
       <Link>AbstractGenerator\DataPool.cs</Link>
     </Compile>
-    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\FiddlerSessionExtension.cs">
-      <Link>AbstractGenerator\Extensions\FiddlerSessionExtension.cs</Link>
-    </Compile>
-    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\SessionUtils.cs">
-      <Link>AbstractGenerator\Extensions\SessionUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\Extensions\StringUtils.cs">
-      <Link>AbstractGenerator\Extensions\StringUtils.cs</Link>
-    </Compile>
     <Compile Include="..\GeneratorFramework_4.5\AbstractGenerator\HTTPRequest.cs">
       <Link>AbstractGenerator\HTTPRequest.cs</Link>
     </Compile>
@@ -310,6 +301,9 @@
       <Project>{2fed9ccb-c331-4bab-8b8d-17754dc873b7}</Project>
       <Name>FiddlerSessionComparer_3.5</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AbstractGenerator\Extensions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

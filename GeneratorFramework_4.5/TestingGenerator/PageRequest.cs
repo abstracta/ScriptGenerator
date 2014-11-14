@@ -51,7 +51,15 @@ namespace Abstracta.Generators.Framework.TestingGenerator
 
             result = FollowRedirects.Aggregate(result,
                                                (current, request) =>
-                                               current + ("\t\tRedir: " + request.RedirectType + ": " + GetRequestString(request.FiddlerSession) + "\n"));
+                                               current +
+                                               ("\t\tRedir: " + request.RedirectType + ": " +
+                                               "(" + request.InfoPage.Id + ") " +
+                                                GetRequestString(request.FiddlerSession) + 
+                                                "\n\t\t\t" +
+                                                string.Join("\n\t\t\t", request.InfoPage.GetParametersToExtract().Select(p => "GetParameter: " + p.ToString()).ToArray()) +
+                                                "\n\t\t\t" +
+                                                string.Join("\n\t\t\t", request.InfoPage.GetParametersToUse().Select(p => "UseParameter: " + p.ToString()).ToArray()) + 
+                                                "\n"));
 
             if (FollowRedirects.Count > 0)
             {

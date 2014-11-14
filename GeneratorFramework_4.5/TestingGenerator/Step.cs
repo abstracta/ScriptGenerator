@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
@@ -11,7 +12,7 @@ namespace Abstracta.Generators.Framework.TestingGenerator
 {
     internal class Step : AbstractStep
     {
-        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
+        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
         {
             return new TestRegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }

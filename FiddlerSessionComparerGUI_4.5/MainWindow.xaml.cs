@@ -29,7 +29,7 @@ namespace Abstracta.FiddlerSessionComparerGUI
             Lista1.SelectionMode = SelectionMode.Single;
             Lista2.SelectionMode = SelectionMode.Single;
 
-            _fsc = new FiddlerSessionComparer.FiddlerSessionComparer(true);
+            _fsc = new FiddlerSessionComparer.FiddlerSessionComparer(true, true);
 
             // for testing porposes
             /*

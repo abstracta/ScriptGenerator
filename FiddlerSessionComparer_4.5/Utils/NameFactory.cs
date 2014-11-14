@@ -1,10 +1,12 @@
-﻿namespace Abstracta.FiddlerSessionComparer.Utils
+﻿using System.Collections.Generic;
+
+namespace Abstracta.FiddlerSessionComparer.Utils
 {
     public class NameFactory
     {
         private static volatile NameFactory _instance;
         private static readonly object Lock = new object();
-        private int _id = -1;
+        private Dictionary<string, int> _nameRegister;
 
         public static NameFactory GetInstance()
         {
@@ -21,14 +23,32 @@
             return _instance;
         }
 
+        public NameFactory()
+        {
+            Reset();
+        }
+
+        public string GetNewName(string name)
+        {
+            if (!_nameRegister.ContainsKey(name))
+            {
+                _nameRegister.Add(name, -1);
+            }
+
+            return name + "_" + ++_nameRegister[name];
+        }
+
         public string GetNewName()
         {
-            return "URL_Params_Comparer_" + ++_id;
+            return "URL_Params_Comparer" + "_" + ++_nameRegister["URL_Params_Comparer"];
         }
 
         public void Reset()
         {
-            _id = -1;
+            _nameRegister = new Dictionary<string, int>
+                {
+                    { "URL_Params_Comparer", -1 }
+                };
         }
     }
 }

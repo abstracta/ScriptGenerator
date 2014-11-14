@@ -18,8 +18,10 @@ namespace Abstracta.FiddlerSessionComparerCLI
             const string fiddlerSessionsFile3 = @"";
 
             const string pagesResultFile = @"pruebaAuto-Param.txt";
+            const bool isGenexusApp = true;
+            const bool replaceInBodies = true;
 
-            var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer(true);
+            var fiddlerComparer = new FiddlerSessionComparer.FiddlerSessionComparer(replaceInBodies, isGenexusApp);
             fiddlerComparer.Load(fiddlerSessionsFile1, fiddlerSessionsFile2, null);
 
             var result = fiddlerComparer.CompareFull();

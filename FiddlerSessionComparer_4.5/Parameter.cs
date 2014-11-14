@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using Abstracta.FiddlerSessionComparer.Utils;
 
 namespace Abstracta.FiddlerSessionComparer
 {
@@ -19,25 +19,38 @@ namespace Abstracta.FiddlerSessionComparer
 
         public static List<Parameter> ParametersAlreadyCreated = new List<Parameter>();
 
-        public Page ExtractedFromPage { get; set; }
+        public Page ExtractFromPage { get; set; }
 
-        public ParameterSoure SourceOfValue { get; set; }
+        public string ExpressionPrefix { get; set; }
 
-        public List<Page> UsedInPages { get; set; }
+        public Extractor ParamExtractor { get; set; }
+
+        public string VariableName { get; set; }
 
         public List<string> Values { get; set; }
 
-        public string VariableName { get; set; }
-        
-        public string ExpressionPrefix { get; set; }
+        public List<Page> UsedInPages
+        {
+            get
+            {
+                var res = new List<Page>();
+                foreach (var parameterInPage in UsedInPPages.Where(parameterInPage => !res.Contains(parameterInPage.Page)))
+                {
+                    res.Add(parameterInPage.Page);
+                }
 
-        public UseToReplaceIn ParameterTarget { get; set; }
+                return res;
+            }
+        }
 
-        public ExtractFrom ExtractParameterFrom { get; set; }
+        public ExtractFrom ExtractFromSection { get; set; }
+
+        public List<ParameterInPage> UsedInPPages { get; set; }
 
         public Parameter()
         {
-            ExtractParameterFrom = ExtractFrom.Body;
+            ExtractFromSection = ExtractFrom.Body;
+            UsedInPPages = new List<ParameterInPage>();
         }
 
         public static void Reset()
@@ -45,9 +58,9 @@ namespace Abstracta.FiddlerSessionComparer
             ParametersAlreadyCreated = new List<Parameter>();
         }
 
-        public static void AddParameterToMainList(Parameter parameter)
+        public static void AddParameterToMainList(Parameter parameter, ParameterContext pContext)
         {
-            if (GetMatchingParameter(parameter) == null)
+            if (FindMatchingParameter(parameter, pContext) == null)
             {
                 ParametersAlreadyCreated.Add(parameter);
             }
@@ -56,23 +69,20 @@ namespace Abstracta.FiddlerSessionComparer
         /// <summary>
         /// Returns a parameter that matches some conditions:
         /// 1- Same values
-        /// 2- If check names: 
-        ///       ExpressionPrefix is contained in the other ExpressionPrefix or viceversa
+        /// 2- If parameter isn't a listValue value, then verify matching in names
         /// </summary>
         /// <param name="parameter"></param>
-        /// <param name="checkNames"></param>
+        /// <param name="pContext"></param>
         /// <returns></returns>
-        public static Parameter GetMatchingParameter(Parameter parameter, bool checkNames = true)
+        public static Parameter FindMatchingParameter(Parameter parameter, ParameterContext pContext)
         {
+            var checkNames = !IsListValueParameter(pContext);
+
             foreach (var p in ParametersAlreadyCreated)
             {
-                var sameValues = true;
-                for (var i = 0; i < p.Values.Count; i++)
-                {
-                    sameValues = sameValues && p.Values[i] == parameter.Values[i];
-                }
+                var sameValues = p.AreValuesTheSame(parameter);
 
-                if (p.ParameterTarget == parameter.ParameterTarget && sameValues)
+                if (sameValues)
                 {
                     if (checkNames && p.ExpressionPrefix != null && 
                         (p.ExpressionPrefix.Contains(parameter.ExpressionPrefix) 
@@ -91,214 +101,257 @@ namespace Abstracta.FiddlerSessionComparer
             return null;
         }
 
-        public override string ToString()
+        public static bool IsListValueParameter(ParameterContext pContext)
         {
-            var values = string.Join("' | '", Values.ToArray());
-            var pages = string.Join("','", UsedInPages.Select(p => p.Id.ToString(CultureInfo.CurrentCulture)).ToArray());
-
-            return "{ " +
-                   "UseToReplaceIn='" + ParameterTarget + "' " +
-                   "ExtractedFromPage='" + ExtractedFromPage.Id + "' " +
-                   "UsedInPages='" + pages + "' " +
-                   "VariableName='" + VariableName + "' " +
-                   "ExpressionPrefix='" + ExpressionPrefix + "' " +
-                   "SourceOfValue=" + SourceOfValue + " " +
-                   "Values=['" + values + "']" +
-                   "}";
+            return ParameterInPage.IsListValueParameter(pContext);
         }
 
-        public bool IsSourceOfValueDefined()
+        public bool IsListValueParameter(int indexParameter = 0)
         {
-            return SourceOfValue != null;
-        }
-
-        /// <summary>
-        /// Create a regular expression for URL parameters.
-        /// </summary>
-        /// <param name="sourceOfValue">Character string to filter the regular expression</param>
-        public void SetRegularExpressionOfParameterFromURL(string sourceOfValue)
-        {
-            /* Options:
-             *   body is a HTML <a ... href="contenedorpestanas?INS,2,60,893,0,0,,ConsultaActual" ...>...</a>
-             *   body is a HTML <IFRAME ... src="contenedorpestanas?INS,2,60,893,0,0,," ...>...</IFRAME>
-             *   body is a HTML <form ... action="historiaclinicaprincipalv2?INS,2,60,893" ...> 
-             *   body is a JSON {"gxCommands":[{"redirect":{"url":"historiaclinicaprincipalv2?INS,2,60,893","forceDisableFrm":1}}]}
-             * 
-             * Need a different regular expression for each case
-             * The problem: body can contain several of each option
-            //*/
-
-            string regExp;
-            var replaceValue = Values[0];
-            var replaceWith = "${" + VariableName + "}";
-
-            if (IsHTMLResponse(sourceOfValue))
+            if (indexParameter < 0 || UsedInPPages.Count <= indexParameter)
             {
-                var htmlTag = GetTagThatContainsValue(sourceOfValue, Values[0]);
-                if (htmlTag == null)
-                {
-                    // need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
-                    Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the source: " + ExpressionPrefix);
-                    SetDefaultSourceOfValue();
-                    return;
-                }
-
-                if (IsHTMLIframeTag(htmlTag))
-                {
-                    // <IFRAME .*src=".*hinicionucleo\?([^"]+)".*>
-                    regExp = "<IFRAME .*src=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
-                }
-                else if (IsHTMLAnchorTag(htmlTag))
-                {
-                    regExp = "<a .*href=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
-                }
-                else if (IsHTMLFormTag(htmlTag))
-                {
-                    regExp = "<form .*action=\".*" + ExpressionPrefix + "\\?([^\"]+)\".*>";
-                }
-                else
-                {
-                    Utils.Logger.GetInstance().Log("ERROR: Don't know what an HTML tag is: " + htmlTag);
-                    
-                    regExp = "\"" + ExpressionPrefix + "\\?([^\"]*)\"";
-                }
-            }
-            else if (IsJSONResponse(sourceOfValue))
-            {
-                regExp = "\"" + ExpressionPrefix + "\\?([^\"]+)\"";
-            }
-            else if (ExtractFromHeaders())
-            {
-                regExp = @"Location: http://.*\?(.*)";
-            }
-            else
-            {
-                Utils.Logger.GetInstance().Log("ERROR: Can't calculate RegExpExtractor. Using default for parameter: " + this);
-                Utils.Logger.GetInstance().Log("ERROR: Body isn't HTML and also isn't JSON: " + sourceOfValue);
-
-                regExp = "\"" + ExpressionPrefix + "\\?([^\"]*)\"";
-            }
-
-            SourceOfValue = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
-        }
-
-        private bool ExtractFromHeaders()
-        {
-            return ExtractParameterFrom == ExtractFrom.Headers;
-        }
-
-        /// <summary>
-        /// Create a regular expression for body parameters.
-        /// </summary>
-        /// <param name="httpResponse">Character string to filter the regular expression</param>
-        public void SetRegularExpressionOfParameterFromBody(string httpResponse)
-        {
-            var bodyCopy = httpResponse;
-
-            if (IsHTMLResponse(httpResponse))
-            {
-                // searches for the variable's name in the response body
-                var pos = IndexOfParameterInHTML(httpResponse, ExpressionPrefix);
-
-                if (pos < 0)
-                {
-                    Utils.Logger.GetInstance().Log("ERROR: Can't find a variable in the body: " + ExpressionPrefix);
-                    SetDefaultSourceOfValue();
-                    return;
-                }
-
-                SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
-            }
-            else
-            {
-                // searches for the variable's name in the response 
-                var pos = IndexOfParameterInHTML(httpResponse, ExpressionPrefix);
-
-                if (pos < 0)
-                {
-                    Utils.Logger.GetInstance().Log("MSG: Can't find a variable name in a JSON Response, need to extract just the value: " + ExpressionPrefix);
-                    SetDefaultSourceOfValue();
-                    return;
-                }
-
-                SourceOfValue = GetRegExp(bodyCopy, pos, ExpressionPrefix, Values[0]);
-            }
-        }
-
-        /// <summary>
-        /// Returns the value of truth of ExpressionPrefix is contained in htmlResponse
-        /// </summary>
-        /// <param name="response">Character string where i want to search ExpressionPrefix</param>
-        /// <returns>Returns true if ExpressionPrefix is contained in htmlResponse or false otherwise</returns>
-        public bool IsContainedInResponse(string response)
-        {
-            if (IsHTMLResponse(response))
-            {
-                var htmlTag = GetTagThatContainsValues(response, ExpressionPrefix, Values[0]);
-                return htmlTag != null;
-            }
-
-            var tmp11 = System.Web.HttpUtility.UrlDecode(Values[0]);
-            if (tmp11 == null)
-            {
+                // throw new Exception("IsListValueParameter: " + indexParameter);
                 return false;
             }
 
-            var tmp12 = System.Web.HttpUtility.HtmlEncode(tmp11);
-            tmp12 = ProcessAccents(tmp12);
-
-            var indexOf = response.IndexOf(tmp12, StringComparison.Ordinal);
-            return indexOf > 0;
+            return UsedInPPages[indexParameter].IsListValueParameter();
         }
 
-        public void SetDefaultSourceOfValue()
+        public override string ToString()
         {
-            SourceOfValue = new ParameterSoure(DefaultVariableName, Values[0]);
+            var values = String.Join("' | '", Values.ToArray());
+            var replaceIn = String.Join("','", UsedInPPages.Select(p => p.Page.Id + "-" + p.ParameterTarget).ToArray());
+
+            return "{ " +
+                   "ExtractedFromPage='" + ExtractFromPage.Id + "' " +
+                   "VariableName='" + VariableName + "' " +
+                   "ExpressionPrefix='" + ExpressionPrefix + "' " +
+                   "Values=['" + values + "'] " +
+                   "UseInPages=['" + replaceIn + "'] " +
+                   "}";
         }
 
-        # region private methods
-
-        private static ParameterSoure GetRegExp(string body, int pos, string parameterName, string value)
+        public bool ExtractFromHeaders()
         {
-            switch (GetBodyType(body, pos, parameterName, value))
+            return ExtractFromSection == ExtractFrom.Headers;
+        }
+
+        public void SetExtractorOfParameter()
+        {
+            // todo, add parameter "ExtractorType" -> { regex, between, etc. }
+            var responseCopy = ExtractFromPage.GetSource(ExtractFromSection);
+            
+            var pos = IndexOfParameterInResponse(responseCopy, ExpressionPrefix);
+            if (pos < 0)
+            {
+                Logger.GetInstance()
+                      .Log("Error when setting extractor: Can't find variable in the body of Page " + ExtractFromPage.Id + ": " +
+                           ExpressionPrefix + ". => Using default extractor");
+                ParamExtractor = GetDefaultExtractor(ExpressionPrefix);
+                return;
+            }
+
+            ParamExtractor = GetRegExp(responseCopy, pos, ExpressionPrefix, Values[0]);
+        }
+
+        public void SetDefaultExtractor()
+        {
+            ParamExtractor = GetDefaultExtractor(ExpressionPrefix);
+        }
+
+        public void ChangeVariableNameTo(string newName)
+        {
+            VariableName = newName;
+        }
+
+        public void AddParameterPage(Page page, UseToReplaceIn useToReplaceIn, ParameterContext pContext)
+        {
+            var pInPage = new ParameterInPage(this, page, pContext, useToReplaceIn);
+
+            if (FindMatchingParameterInPage(pInPage) == null)
+            {
+                UsedInPPages.Add(pInPage);    
+            }
+        }
+
+        public void AddParameterPage(Page page, UseToReplaceIn useToReplaceIn, string replaceValue, string replaceWith)
+        {
+            var pInPage = new ParameterInPage(this, page, ParameterContext.Default, useToReplaceIn, replaceValue, replaceWith);
+
+            if (FindMatchingParameterInPage(pInPage) == null)
+            {
+                UsedInPPages.Add(pInPage);
+            }
+        }
+
+        public List<ParameterInPage> GetParameterPagesOfPage(Page page)
+        {
+            return UsedInPPages.Where(p => p.Page == page).ToList();
+        }
+
+        public ParameterInPage GetFirstParameterPagesOfPageAndType(Page page, UseToReplaceIn useToReplaceIn)
+        {
+            return UsedInPPages.FirstOrDefault(p => p.Page == page && p.ParameterTarget == useToReplaceIn);
+        }
+
+        public bool AreValuesTheSame(Parameter parameter)
+        {
+            var sameValues = true;
+            for (var i = 0; i < Values.Count; i++)
+            {
+                sameValues = sameValues && Values[i] == parameter.Values[i];
+            }
+
+            return sameValues;
+        }
+
+        public IEnumerable<UseToReplaceIn> TargetsOfPage(Page page)
+        {
+            return
+                (from parameterInPage in UsedInPPages
+                 where parameterInPage.Page == page
+                 select parameterInPage.ParameterTarget).ToList();
+        }
+
+        public void SetAsConstant()
+        {
+            ParamExtractor = new Extractor();
+        }
+        
+        public static bool ContainsParameterWithVariableName(string variableName)
+        {
+            return GetParameterWithVariableName(variableName) != null;
+        }
+
+        public static Extractor GetDefaultExtractor(string expressionPrefix)
+        {
+            return new RegExpExtractor(1, expressionPrefix + "=([^&$]*)");
+        }
+
+        public static Parameter GetParameterWithVariableName(string variableName)
+        {
+            return ParametersAlreadyCreated.FirstOrDefault(parameter => parameter.VariableName == variableName);
+        }
+
+        private ParameterInPage FindMatchingParameterInPage(ParameterInPage pInPage)
+        {
+            return UsedInPPages.FirstOrDefault(pip => pip.Page == pInPage.Page && pip.ParameterTarget == pInPage.ParameterTarget);
+        }
+
+        /*
+        /// <summary>
+        /// todo: unify this method with 'SetRegularExpressionOfParameter' method
+        /// </summary>
+        /// <param name="sourceOfValue">Character string to filter the regular expression</param>
+        public void SetRegularExpressionOfParameterUsedInURL(string sourceOfValue)
+        {
+            // Options:
+             //   sourceOfValue is a HTML <a ... href="contenedorpestanas?INS,2,60,893,0,0,,ConsultaActual" ...>...</a>
+             //   sourceOfValue is a HTML <IFRAME ... src="contenedorpestanas?INS,2,60,893,0,0,," ...>...</IFRAME>
+             //   sourceOfValue is a HTML <form ... action="historiaclinicaprincipalv2?INS,2,60,893" ...> 
+             //   sourceOfValue is a JSON {"gxCommands":[{"redirect":{"url":"historiaclinicaprincipalv2?INS,2,60,893","forceDisableFrm":1}}]}
+             // 
+             // Need a different regular expression for each case
+             // The problem: sourceOfValue can contain several of each option
+            //
+
+            string regExp, replaceValue, replaceWith;
+            CalculateReplacementFromContext(out replaceValue, out replaceWith);
+
+            if (Page.IsHTMLResponse(sourceOfValue))
+            {
+                var htmlTag = Page.GetTagThatContainsValue(sourceOfValue, _p.Values[0]);
+                if (htmlTag == null)
+                {
+                    // need to set a default value. When this executes, means ExpressionPrefix or body are incorrect
+                    Logger.GetInstance().Log("ERROR: Can't find a variable in the source: " + _p.ExpressionPrefix);
+                    SetDefaultSourceOfValue();
+                    return;
+                }
+
+                if (Page.IsHTMLIframeTag(htmlTag))
+                {
+                    // <IFRAME .*src=".*hinicionucleo\?([^"]+)".*>
+                    regExp = "<IFRAME .*src=\".*" + _p.ExpressionPrefix + "\\?([^\"]+)\".*>";
+                }
+                else if (Page.IsHTMLAnchorTag(htmlTag))
+                {
+                    regExp = "<a .*href=\".*" + _p.ExpressionPrefix + "\\?([^\"]+)\".*>";
+                }
+                else if (Page.IsHTMLFormTag(htmlTag))
+                {
+                    regExp = "<form .*action=\".*" + _p.ExpressionPrefix + "\\?([^\"]+)\".*>";
+                }
+                else
+                {
+                    Logger.GetInstance().Log("ERROR: Don't know what an HTML tag is: " + htmlTag);
+
+                    regExp = "\"" + _p.ExpressionPrefix + "\\?([^\"]*)\"";
+                }
+            }
+            else if (Page.IsJSONResponse(sourceOfValue))
+            {
+                regExp = "\"" + _p.ExpressionPrefix + "\\?([^\"]+)\"";
+            }
+            else if (_p.ExtractFromHeaders())
+            {
+                // matches http && https
+                regExp = @"Location: http.?://.*\?(.*)";
+            }
+            else
+            {
+                Logger.GetInstance().Log("ERROR: Can't calculate RegExpExtractor. Using default for parameter: " + this);
+                Logger.GetInstance().Log("ERROR: Body isn't HTML and also isn't JSON: " + sourceOfValue);
+
+                regExp = "\"" + _p.ExpressionPrefix + "\\?([^\"]*)\"";
+            }
+
+            Replacement = new RegExpExtractor(1, regExp, replaceValue, replaceWith);
+        }
+
+        // */
+
+        private static Extractor GetRegExp(string body, int pos, string expressionPrefix, string value)
+        {
+            switch (GetBodyType(body, pos, expressionPrefix, value))
             {
                 case VariableType.HTML:
                     // \b<variableName>=([^&$]*)
                     // holaquetal="1"&jhoholaquetal="2"&holaquetal="3"&hholaquetal="4"&holaquetal="5"
                     // matches "1", "3", "5"
                     // http://stackoverflow.com/questions/2552428/regex-use-start-of-line-end-of-line-signs-or-in-different-context
-                    return new RegExpExtractor(1, /*"\\b" + */parameterName + "=([^&$]*)",
-                                               parameterName + "=" + value,
-                                               parameterName + "=" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, /*"\\b" + */expressionPrefix + "=([^&$]*)");
+                    ////parameterName + "=" + value,
+                    ////parameterName + "=" + Parameter.DefaultVariableName + "");
                 case VariableType.JSONString:
-                    return new RegExpExtractor(1, "\"" + parameterName + "\":\"([^\"]*)\"",
-                                                "\"" + parameterName + "\":\"" + value + "\"",
-                                                "\"" + parameterName + "\":\"" + DefaultVariableName + "\"");
+                    return new RegExpExtractor(1, "\"" + expressionPrefix + "\":\"([^\"]*)\"");
+                    ////"\"" + parameterName + "\":\"" + value + "\"",
+                    ////"\"" + parameterName + "\":\"" + Parameter.DefaultVariableName + "\"");
                 case VariableType.JSONInt:
-                    return new RegExpExtractor(1, "\"" + parameterName + "\":([\\d]+(\\.[\\d]+)?)",
-                                                "\"" + parameterName + "\":" + value + "",
-                                                "\"" + parameterName + "\":" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, "\"" + expressionPrefix + "\":([\\d]+(\\.[\\d]+)?)");
+                    ////"\"" + parameterName + "\":" + value + "",
+                    ////"\"" + parameterName + "\":" + Parameter.DefaultVariableName + "");
 
                 case VariableType.JSONBool:
-                    return new RegExpExtractor(1, "\"" + parameterName + "\":(true|false|null)[,|\\}|\\]]",
-                                                "\"" + parameterName + "\":" + value + "",
-                                                "\"" + parameterName + "\":" + DefaultVariableName + "");
+                    return new RegExpExtractor(1, "\"" + expressionPrefix + "\":(true|false|null)[,|\\}|\\]]");
+                    ////"\"" + parameterName + "\":" + value + "",
+                    ////"\"" + parameterName + "\":" + Parameter.DefaultVariableName + "");
 
                 case VariableType.ToStringedJSON:
-                    return new RegExpExtractor(1, "\"" + parameterName + "\\\\\",\\\\\"([^\\\\\"]*)\\\\\"",
-                                                "\"" + parameterName + "\\\\\",\\\\\"" + value + "\\\\\"",
-                                                "\"" + parameterName + "\\\\\",\\\\\"" + DefaultVariableName + "\\\\\"");
+                    return new RegExpExtractor(1, "\"" + expressionPrefix + "\\\\\",\\\\\"([^\\\\\"]*)\\\\\"");
+                    ////"\"" + parameterName + "\\\\\",\\\\\"" + value + "\\\\\"",
+                    ////"\"" + parameterName + "\\\\\",\\\\\"" + Parameter.DefaultVariableName + "\\\\\"");
                 default:
                     // VariableName += "_UndefinedTypeParameter";
                     // Utils.Logger.GetInstance().Log("Parameter context format (HTML, JSON) undefined: " + this);
-                    return new ParameterSoure(parameterName, value);
+                    return GetDefaultExtractor(expressionPrefix);
             }
         }
 
         private static VariableType GetBodyType(string body, int pos, string key, string value)
         {
             // checks if there is a tag in the HTML response, that contains the value and the key
-            var htmlTag = GetTagThatContainsValues(body, key, value);
+            var htmlTag = Page.GetTagThatContainsValues(body, key, value);
             if (htmlTag != null && htmlTag.Contains(key))
             {
                 if ((body[pos - 1] == '\"' && body[pos + key.Length] == '\"') && (body[pos + key.Length + 2] == '\"'))
@@ -322,7 +375,7 @@ namespace Abstracta.FiddlerSessionComparer
                     return VariableType.JSONString;
                 }
 
-                if (char.IsNumber(body[pos + key.Length + 2]))
+                if (Char.IsNumber(body[pos + key.Length + 2]))
                 {
                     return VariableType.JSONInt;
                 }
@@ -337,112 +390,8 @@ namespace Abstracta.FiddlerSessionComparer
 
             return VariableType.Undefined;
         }
-
-        private static bool IsHTMLResponse(string html)
-        {
-            if (html.Length < 25)
-            {
-                return false;
-            }
-
-            var h2 = html.TrimStart().Substring(0, 20).ToLower();
-            return h2.StartsWith("<!doctype html>") || h2.StartsWith("<html>");
-        }
-
-        private static bool IsJSONResponse(string html)
-        {
-            return html.Trim().StartsWith("{");
-        }
-
-        private static bool IsHTMLAnchorTag(string htmlTag)
-        {
-            return htmlTag.ToLower().StartsWith("<a ");
-        }
-
-        private static bool IsHTMLIframeTag(string htmlTag)
-        {
-            return htmlTag.ToLower().StartsWith("<iframe ");
-        }
-
-        private static bool IsHTMLFormTag(string htmlTag)
-        {
-            return htmlTag.ToLower().StartsWith("<form ");
-        }
-
-        private static string GetTagThatContainsValue(string html, string value)
-        {
-            return GetTagThatContainsValues(html, value, string.Empty);
-        }
-
-        private static string GetTagThatContainsValues(string html, string val1, string val2)
-        {
-            // must be unescaped: i.e. '%3Ck2b%20xmlns%3D%22SPU%22' to '<k2b xmlns="SPU"'
-            var tmp11 = System.Web.HttpUtility.UrlDecode(val1);
-            var tmp21 = System.Web.HttpUtility.UrlDecode(val2);
-
-            if (tmp11 == null || tmp21 == null)
-            {
-                return null;
-            }
-
-            // enconde to HTML: i.e. '<k2b xmlns="SPU"' to '&lt;k2b xmlns=&quot;SPU&quot;'
-            var tmp12 = System.Web.HttpUtility.HtmlEncode(tmp11);
-            var tmp22 = System.Web.HttpUtility.HtmlEncode(tmp21);
-
-            tmp12 = ProcessAccents(tmp12);
-            tmp22 = ProcessAccents(tmp22);
-          
-            // Can't change the html string, because it's what it comes. The regular expression must match the HTML unchanged.
-            var html2 = html.Replace("\n", "").Replace("\r", "");
-
-            while (html2.Length > 0)
-            {
-                var indexOf = html2.IndexOf(tmp12, StringComparison.Ordinal);
-                if (indexOf < 0)
-                {
-                    return null;
-                }
-
-                int indexIni = indexOf, indexEnd = indexOf;
-                for (; indexIni > 0 && html2[indexIni] != '<'; indexIni--)
-                {
-                }
-
-                for (; indexEnd < html2.Length && html2[indexEnd] != '>'; indexEnd++)
-                {
-                }
-
-                var tag = html2.Substring(indexIni, (indexEnd - indexIni));
-
-                if (tag.Contains(tmp22))
-                {
-                    return tag;
-                }
-
-                html2 = html2.Substring(indexOf + tmp12.Length);
-            }
-
-            return null;
-        }
-
-        private static string ProcessAccents(string value)
-        {
-            value = value.Replace("&#225;", "á");
-            value = value.Replace("&#233;", "é");
-            value = value.Replace("&#237;", "í");
-            value = value.Replace("&#243;", "ó");
-            value = value.Replace("&#250;", "ú");
-
-            return value;
-        }
         
-        /// <summary>
-        /// Index of parameterName and parameterValue
-        /// </summary>
-        /// <param name="htmlResponse"></param>
-        /// <param name="parameterName"></param>
-        /// <returns></returns>
-        private static int IndexOfParameterInHTML(string htmlResponse, string parameterName)
+        private static int IndexOfParameterInResponse(string htmlResponse, string parameterName)
         {
             var offset = 0;
 
@@ -466,7 +415,103 @@ namespace Abstracta.FiddlerSessionComparer
 
             return offset + pos;
         }
+    }
 
-        #endregion
+    public class ParameterInPage
+    {
+        private readonly Parameter _p;
+
+        public Page Page { get; set; }
+
+        public Replacement Replacement { get; set; }
+
+        public UseToReplaceIn ParameterTarget { get; set; }
+
+        public ParameterContext ContextWhereParameterIsUsed { get; set; }
+
+        public ParameterInPage(Parameter parameter, Page page, ParameterContext parameterContext, UseToReplaceIn parameterTarget)
+        {
+            _p = parameter;
+
+            Page = page;
+            ParameterTarget = parameterTarget;
+            ContextWhereParameterIsUsed = parameterContext;
+
+            string replaceValue, replaceWith;
+            CalculateReplacementFromContext(out replaceValue, out replaceWith);
+
+            Replacement = new Replacement(replaceWith, replaceValue);
+        }
+
+        public ParameterInPage(Parameter parameter, Page page, ParameterContext parameterContext,
+                               UseToReplaceIn parameterTarget, string replaceValue, string replaceWith)
+        {
+            _p = parameter;
+
+            Page = page;
+            ParameterTarget = parameterTarget;
+            ContextWhereParameterIsUsed = parameterContext;
+            Replacement = new Replacement(replaceWith, replaceValue);
+        }
+
+        public bool IsListValueParameter()
+        {
+            return IsListValueParameter(ContextWhereParameterIsUsed);
+        }
+
+        public static bool IsListValueParameter(ParameterContext pContext)
+        {
+            return pContext == ParameterContext.AloneValue
+                   || pContext == ParameterContext.FirstComaSeparatedValue
+                   || pContext == ParameterContext.ComaSeparatedValue
+                   || pContext == ParameterContext.LastComaSeparatedValue;
+        }
+
+        public bool IsSourceOfValueDefined()
+        {
+            return Replacement != null;
+        }
+
+        private void CalculateReplacementFromContext(out string replaceValue, out string replaceWith)
+        {
+            switch (ContextWhereParameterIsUsed)
+            {
+                case ParameterContext.XMLAttribute:
+                case ParameterContext.KeyEqualValue:
+                    replaceValue = _p.ExpressionPrefix + "=" + _p.Values[0];
+                    replaceWith = _p.ExpressionPrefix + "=" + Parameter.DefaultVariableName;
+                    break;
+
+                case ParameterContext.JSonNumberValue:
+                    replaceValue = "\"" + _p.ExpressionPrefix + "\":" + _p.Values[0];
+                    replaceWith = "\"" + _p.ExpressionPrefix + "\":" + Parameter.DefaultVariableName;
+                    break;
+
+                case ParameterContext.JSonStringValue:
+                    replaceValue = "\"" + _p.ExpressionPrefix + "\":\"" + _p.Values[0] + "\"";
+                    replaceWith = "\"" + _p.ExpressionPrefix + "\":\"" + Parameter.DefaultVariableName + "\"";
+                    break;
+
+                case ParameterContext.FirstComaSeparatedValue:
+                    replaceValue = _p.Values[0] + ",";
+                    replaceWith = Parameter.DefaultVariableName + ",";
+                    break;
+
+                case ParameterContext.ComaSeparatedValue:
+                    replaceValue = "," + _p.Values[0] + ",";
+                    replaceWith = "," + Parameter.DefaultVariableName + ",";
+                    break;
+
+                case ParameterContext.LastComaSeparatedValue:
+                    replaceValue = "," + _p.Values[0];
+                    replaceWith = "," + Parameter.DefaultVariableName;
+                    break;
+
+                default:
+                    replaceValue = _p.Values[0];
+                    replaceWith = Parameter.DefaultVariableName;
+                    break;
+            }
+        }
     }
 }

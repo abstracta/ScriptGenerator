@@ -20,8 +20,9 @@ namespace Abstracta.FiddlerSessionComparer
 
     public class FiddlerSessionComparer
     {
+        // todo: create the parameter as detected difference, but don't replace the value by the parameter
         // Parameters with values larger than this constant will not be marked as a difference
-        private const int MaxLengthOfValue = 512;
+        private const int MaxLengthOfValue = 1024;
 
         private Session[] _sessions1, _sessions2;
 
@@ -29,9 +30,12 @@ namespace Abstracta.FiddlerSessionComparer
 
         public static bool ReplaceInBodies { get; private set; }
 
-        public FiddlerSessionComparer(bool replaceInBodies)
+        public static bool IsGx { get; private set; }
+
+        public FiddlerSessionComparer(bool replaceInBodies, bool isGenexusApplication)
         {
             ReplaceInBodies = replaceInBodies;
+            IsGx = isGenexusApplication;
         }
 
 		/// <summary>
@@ -64,21 +68,12 @@ namespace Abstracta.FiddlerSessionComparer
         /// <param name="extenssions">list of extenssions who are primary request (.html .jsp between others).</param>
         /// <returns>List of primary requests</returns>
         public static Session[] CleanSessions(IEnumerable<Session> sessions, string[] extenssions)
-        {
-            var sessionsTemp = new List<Session>();
-            // ReSharper disable LoopCanBeConvertedToQuery
-            foreach (var s in sessions)
-            {
-                var uri = new Uri(s.fullUrl);
-                if ((uri.LocalPath.Split('.').Length == 1) || IsPrimaryReq(uri.LocalPath, extenssions)
-                    && !uri.LocalPath.Contains("GXResourceProv"))
-                {
-                    sessionsTemp.Add(s);
-                }
-            }
-            // ReSharper restore LoopCanBeConvertedToQuery
-            return sessionsTemp.ToArray();
-        }
+		{
+		    return (from session in sessions
+		            let method = session.oRequest.headers.HTTPMethod.ToLower()
+		            where session.IsPrimaryRequest() && method == "get" || method == "post"
+		            select session).ToArray();
+		}
         
         public static string Decode(string s)
         {
@@ -183,8 +178,8 @@ namespace Abstracta.FiddlerSessionComparer
                 params1 = session1.GetRequestBodyAsString();
                 params2 = session2.GetRequestBodyAsString();
 
-                var dicParams1 = CreateListOfValuesFromBody(index1, params1);
-                var dicParams2 = CreateListOfValuesFromBody(index2, params2);
+                var dicParams1 = CreateListOfValuesFromString(index1, params1);
+                var dicParams2 = CreateListOfValuesFromString(index2, params2);
 
                 res.AddRange(GetTheDifferences(dicParams1, dicParams2, type));
             }
@@ -217,8 +212,12 @@ namespace Abstracta.FiddlerSessionComparer
 
                 if (i2 < 0)
                 {
-                    // Create an "empty" page, a page without differences
-                    rootPage.CreateAndInsertPage(s1);
+                    var method = s1.oRequest.headers.HTTPMethod.ToLower();
+                    if (method == "get" || method == "post")
+                    {
+                        // Create an "empty" page, a page without differences
+                        rootPage.CreateAndInsertPage(s1);
+                    }
                 }
                 else
                 {
@@ -370,26 +369,69 @@ namespace Abstracta.FiddlerSessionComparer
 
             var page = rootPage.CreateAndInsertPage(s1);
 
-            var redirectByCode = 299 < page.Referer.ResponseCode && page.Referer.ResponseCode < 400;
-            var sourceOfParameter = redirectByCode ? ExtractFrom.Headers : ExtractFrom.Body;
+            // var redirectByCode = 299 < page.Referer.ResponseCode && page.Referer.ResponseCode < 400;
+            // var sourceOfParameter = redirectByCode ? ExtractFrom.Headers : ExtractFrom.Body;
 
             var temp1 = GetParametersFromURL(s1.fullUrl);
             var temp2 = GetParametersFromURL(s2.fullUrl);
 
-            // todo: add -> if (applications is genexus)
-            temp1 = RemoveUnusedParameters(temp1);
-            temp2 = RemoveUnusedParameters(temp2);
-            
-            var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
+            if (IsGx)
+            {
+                temp1 = RemoveUnusedParameters(temp1);
+                temp2 = RemoveUnusedParameters(temp2);
+            }
 
-            var paramsInGet1 = temp1 != null ? temp1.Split(',') : new string[0];
-            var paramsInGet2 = temp2 != null ? temp2.Split(',') : new string[0];
+            if (temp1 == null && temp2 == null)
+            {
+                return page;
+            }
 
-            // todo the condition in the for doesn't consider ShowAll, and HideEquals, just works for 'HideNull&Equals'
+            if (IsGx || AreComaSeparatedValues(temp1))
+            {
+                var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
+                CompareParametersInsideList(page, s1.id, s2.id, temp1, temp2, type, UseToReplaceIn.Url, expressionPrefix); 
+            }
+            else if (AreKeyValueValues(temp1))
+            {
+                CompareParametersInsideDictionary(page, s1.id, s2.id, temp1, temp2, type, UseToReplaceIn.Url);
+            }
+            else
+            {
+                Utils.Logger.GetInstance().Log("Unknown format for parameters (try coma separated values): " + temp1);
+
+                // by default will try coma separated values (it may be just one value)
+                var expressionPrefix = GetProgramFromURL(GetPathFromURL(s1.fullUrl));
+                CompareParametersInsideList(page, s1.id, s2.id, temp1, temp2, type, UseToReplaceIn.Url, expressionPrefix);
+            }
+
+            return page;
+        }
+
+        private static void CompareParametersInsideList(Page page, int id1, int id2, string params1, string params2, ComparerResultType type, 
+                                              UseToReplaceIn useToReplaceIn, string expressionPrefix)
+        {
+            var paramsInGet1 = params1 != null ? params1.Split(',') : new string[0];
+            var paramsInGet2 = params2 != null ? params2.Split(',') : new string[0];
+
+            // todo the condition of the for doesn't consider ShowAll, and HideEquals, just works for 'HideNull&Equals'
             for (var i = 0; i < paramsInGet1.Length && i < paramsInGet2.Length; i++)
             {
-                temp1 = paramsInGet1[i];
-                temp2 = paramsInGet2[i];
+                var temp1 = paramsInGet1[i];
+                var temp2 = paramsInGet2[i];
+
+                var contextType = ParameterContext.ComaSeparatedValue;
+                if (i == 0 && paramsInGet1.Length == 1)
+                {
+                    contextType = ParameterContext.AloneValue;
+                }
+                else if (i == 0)
+                {
+                    contextType = ParameterContext.FirstComaSeparatedValue;
+                }
+                else if (i == paramsInGet1.Length - 1)
+                {
+                    contextType = ParameterContext.LastComaSeparatedValue;
+                }
 
                 string varName;
                 Parameter parameter;
@@ -401,17 +443,16 @@ namespace Abstracta.FiddlerSessionComparer
 
                         parameter = new Parameter
                             {
-                                ExtractedFromPage = page.Referer,
-                                UsedInPages = new List<Page>(),
+                                ExtractFromPage = page.Referer,
+                                UsedInPPages = new List<ParameterInPage> (),
                                 Values = new List<string> {temp1, temp2},
                                 VariableName = varName,
                                 ExpressionPrefix = expressionPrefix,
-                                ParameterTarget = UseToReplaceIn.Url,
-                                ExtractParameterFrom = sourceOfParameter,
+                                // ExtractFromSection = sourceOfParameter,
                             };
 
-                        parameter = page.Referer.AddParameterToExtract(parameter);
-                        page.AddParameterToUse(parameter);
+                        parameter = page.Referer.AddParameterToExtract(parameter, page, contextType);
+                        page.AddParameterToUse(parameter, useToReplaceIn, contextType);
                         break;
 
                         // parametrize when different
@@ -422,17 +463,15 @@ namespace Abstracta.FiddlerSessionComparer
 
                             parameter = new Parameter
                                 {
-                                    ExtractedFromPage = page.Referer,
-                                    UsedInPages = new List<Page>(),
+                                    ExtractFromPage = page.Referer,
                                     Values = new List<string> {temp1, temp2},
                                     VariableName = varName,
                                     ExpressionPrefix = expressionPrefix,
-                                    ParameterTarget = UseToReplaceIn.Url,
-                                    ExtractParameterFrom = sourceOfParameter,
+                                    // ExtractFromSection = sourceOfParameter,
                                 };
 
-                            parameter = page.Referer.AddParameterToExtract(parameter);
-                            page.AddParameterToUse(parameter);
+                            parameter = page.Referer.AddParameterToExtract(parameter, page, contextType);
+                            page.AddParameterToUse(parameter, useToReplaceIn, contextType);
                         }
                         break;
 
@@ -444,26 +483,32 @@ namespace Abstracta.FiddlerSessionComparer
 
                             parameter = new Parameter
                                 {
-                                    ExtractedFromPage = page.Referer,
-                                    UsedInPages = new List<Page>(),
+                                    ExtractFromPage = page.Referer,
                                     Values = new List<string> {temp1, temp2},
                                     VariableName = varName,
                                     ExpressionPrefix = expressionPrefix,
-                                    ParameterTarget = UseToReplaceIn.Url,
-                                    ExtractParameterFrom = sourceOfParameter,
+                                    // ExtractFromSection = sourceOfParameter,
                                 };
 
-                            parameter = page.Referer.AddParameterToExtract(parameter);
-                            page.AddParameterToUse(parameter);
+                            parameter = page.Referer.AddParameterToExtract(parameter, page, contextType);
+                            page.AddParameterToUse(parameter, useToReplaceIn, contextType);
                         }
                         break;
                 }
             }
-
-            return page;
         }
-        
-		private static string RemoveUnusedParameters(string parameters)
+
+        private static bool AreKeyValueValues(string str)
+        {
+            return str != null && str.Split('&').All(p => p.Contains('='));
+        }
+
+        private static bool AreComaSeparatedValues(string str)
+        {
+            return str != null && str.Contains(',');
+        }
+
+        private static string RemoveUnusedParameters(string parameters)
         {
             if (parameters == null)
             {
@@ -480,9 +525,6 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             var res = indexOf == -1 ? parameters : parameters.Substring(0, indexOf);
-
-		    // res = res.Replace("dyncall,", "");
-            // res = res.Replace("gxajaxEvt,", "");
 
 		    return res;
         }
@@ -501,34 +543,41 @@ namespace Abstracta.FiddlerSessionComparer
             var s1Body = s1.GetRequestBodyAsString();
             var s2Body = s2.GetRequestBodyAsString();
 
-            var params1 = CreateListOfValuesFromBody(s1.id, s1Body);
-            var params2 = CreateListOfValuesFromBody(s1.id, s2Body);
+            CompareParametersInsideDictionary(page, s1.id, s2.id, s1Body, s2Body, type, UseToReplaceIn.Body);
+        }
 
-            var differences = GetTheDifferences(params1, params2, type).ToList();
+        private static void CompareParametersInsideDictionary(Page page, int id1, int id2, string s1Body, string s2Body, ComparerResultType type, UseToReplaceIn useToReplaceIn)
+        {
+            var params1 = CreateListOfValuesFromString(id1, s1Body);
+            var params2 = CreateListOfValuesFromString(id2, s2Body);
+
+            var differences = GetTheDifferences(params1, params2, type);
             foreach (var difference in differences)
             {
+                // The parameter needs the context (delimiters of the value) to know how to replace it in the string. 
+                // In other case we can replace incorrect values
+                var pContext = FindParamDefinitionFromKeyValue(params1, difference.Key, difference.Value1);
+
                 var parameter = new Parameter
                 {
-                    ExtractedFromPage = page.Referer,
-                    UsedInPages = new List<Page> { page },
+                    ExtractFromPage = page.Referer,
                     Values = new List<string> { difference.Value1, difference.Value2 },
                     VariableName = difference.Key,
                     ExpressionPrefix = difference.Key,
-                    ParameterTarget = UseToReplaceIn.Body,
                 };
-                
-                var p2 = page.Referer.AddParameterToExtract(parameter);
 
-                if (parameter == p2)
-                {
-                    p2.UsedInPages = new List<Page>();
-                }
-
-                // adds p2 when it isn't null, otherwise, adds parameter
-                page.AddParameterToUse(p2 ?? parameter);
+                parameter = page.Referer.AddParameterToExtract(parameter, page, pContext);
+                page.AddParameterToUse(parameter, useToReplaceIn, pContext);
             }
         }
 
+        private static ParameterContext FindParamDefinitionFromKeyValue(IEnumerable<ParameterDefinition> parameters, string key, string value)
+        {
+            var param = parameters.FirstOrDefault(p => p.Key == key && p.Value == value);
+            return (param != null)?  param.Context : ParameterContext.Default;
+        }
+
+        // todo refactor this function
         private static void CompareSessionVsPage(Page p2, Session s1)
         {
             const ComparerResultType type = ComparerResultType.HideNullOrEquals;
@@ -547,6 +596,7 @@ namespace Abstracta.FiddlerSessionComparer
             }
         }
 
+        // todo refactor this function
         private static Page CompareSessionVsPageInGET(Page p2, Session s1, ComparerResultType type)
         {
             if (s1 == null || p2 == null)
@@ -585,16 +635,14 @@ namespace Abstracta.FiddlerSessionComparer
 
                         parameter = new Parameter
                             {
-                                ExtractedFromPage = p2.Referer,
-                                UsedInPages = new List<Page>(),
+                                ExtractFromPage = p2.Referer,
                                 Values = new List<string> {temp1, temp2},
                                 VariableName = varName,
                                 ExpressionPrefix = expressionPrefix,
-                                ParameterTarget = UseToReplaceIn.Url,
                             };
 
-                        parameter = p2.Referer.AddParameterToExtract(parameter);
-                        p2.AddParameterToUse(parameter);
+                        parameter = p2.Referer.AddParameterToExtract(parameter, p2, ParameterContext.ComaSeparatedValue);
+                        p2.AddParameterToUse(parameter, UseToReplaceIn.Url, ParameterContext.ComaSeparatedValue);
                     }
 
                     break;
@@ -613,16 +661,14 @@ namespace Abstracta.FiddlerSessionComparer
 
                                 parameter = new Parameter
                                 {
-                                    ExtractedFromPage = p2.Referer,
-                                    UsedInPages = new List<Page>(),
+                                    ExtractFromPage = p2.Referer,
                                     Values = new List<string> { temp1, temp2 },
                                     VariableName = varName,
                                     ExpressionPrefix = expressionPrefix,
-                                    ParameterTarget = UseToReplaceIn.Url,
                                 };
 
-                                parameter = p2.Referer.AddParameterToExtract(parameter);
-                                p2.AddParameterToUse(parameter);
+                                parameter = p2.Referer.AddParameterToExtract(parameter, p2, ParameterContext.ComaSeparatedValue);
+                                p2.AddParameterToUse(parameter, UseToReplaceIn.Url, ParameterContext.ComaSeparatedValue);
                             }
                     }
                     else if ((temp1 == null) && (temp2 == null))
@@ -645,16 +691,14 @@ namespace Abstracta.FiddlerSessionComparer
 
                             parameter = new Parameter
                             {
-                                ExtractedFromPage = p2.Referer,
-                                UsedInPages = new List<Page>(),
+                                ExtractFromPage = p2.Referer,
                                 Values = new List<string> { temp1, temp2 },
                                 VariableName = varName,
                                 ExpressionPrefix = expressionPrefix,
-                                ParameterTarget = UseToReplaceIn.Url,
                             };
 
-                            parameter = p2.Referer.AddParameterToExtract(parameter);
-                            p2.AddParameterToUse(parameter);
+                            parameter = p2.Referer.AddParameterToExtract(parameter, p2, ParameterContext.ComaSeparatedValue);
+                            p2.AddParameterToUse(parameter, UseToReplaceIn.Url, ParameterContext.ComaSeparatedValue);
                         }
                     }
                     break;
@@ -663,6 +707,7 @@ namespace Abstracta.FiddlerSessionComparer
             return p2;
         }
 
+        // todo refactor this function
         private static void CompareSessionVsPageInPOST(Page p2, Session s1, ComparerResultType type)
         {
             if (s1 == null || p2 == null)
@@ -677,8 +722,8 @@ namespace Abstracta.FiddlerSessionComparer
             var s1Body = s1.GetRequestBodyAsString();
             var s2Body = p2.Body;
 
-            var params1 = CreateListOfValuesFromBody(s1.id, s1Body);
-            var params2 = CreateListOfValuesFromBody(s1.id, s2Body);
+            var params1 = CreateListOfValuesFromString(s1.id, s1Body);
+            var params2 = CreateListOfValuesFromString(s1.id, s2Body);
 
             var differences = GetTheDifferences(params1, params2, type).ToList();
             //todo remove differences parametrized
@@ -699,22 +744,20 @@ namespace Abstracta.FiddlerSessionComparer
                     {
                         var parameter = new Parameter
                         {
-                            ExtractedFromPage = page.Referer,
-                            UsedInPages = new List<Page>(),
+                            ExtractFromPage = page.Referer,
                             Values = new List<string> { difference.Value1, difference.Value2 },
                             VariableName = difference.Key,
                             ExpressionPrefix = difference.Key,
-                            ParameterTarget = UseToReplaceIn.Body,
                         };
 
-                        parameter = page.Referer.AddParameterToExtract(parameter);
-                        page.AddParameterToUse(parameter);
+                        parameter = page.Referer.AddParameterToExtract(parameter, page, ParameterContext.ComaSeparatedValue);
+                        page.AddParameterToUse(parameter, UseToReplaceIn.Body, ParameterContext.ComaSeparatedValue);
                     }
                 }
             }
         }
 
-        private static IEnumerable<EqualsResult> GetTheDifferences(IEnumerable<Tuple<string, string>> paramValues1, ICollection<Tuple<string, string>> paramValues2, ComparerResultType type)
+        private static IEnumerable<EqualsResult> GetTheDifferences(IEnumerable<ParameterDefinition> paramValues1, ICollection<ParameterDefinition> paramValues2, ComparerResultType type)
         {
             var result = new List<EqualsResult>();
             const string aux = "NULL";
@@ -722,8 +765,8 @@ namespace Abstracta.FiddlerSessionComparer
             foreach (var pv in paramValues1)
             {
                 // todo: improve performance here, use find element instead of search if its contained and after that get it
-                var key = pv.Item1;
-                var value1 = pv.Item2;
+                var key = pv.Key;
+                var value1 = pv.Value;
                 var paramValues2ContainsKey = ContainsKey(paramValues2, key);
                 var value2 = (paramValues2ContainsKey) ? GetValueByKey(paramValues2, key) : aux;
 
@@ -775,49 +818,62 @@ namespace Abstracta.FiddlerSessionComparer
             {
                 case ComparerResultType.ShowAll:
                 case ComparerResultType.HideEquals:
-                    result.AddRange(paramValues2.Select(t => new EqualsResult(t.Item1, aux, t.Item2)));
+                    result.AddRange(paramValues2.Select(t => new EqualsResult(t.Key, aux, t.Value)));
                     break;
             }
 
             return result;
         }
- 
-        private static void RemoveByKey(ICollection<Tuple<string, string>> list, string key)
+
+        private static void RemoveByKey(ICollection<ParameterDefinition> list, string key)
         {
-            var item = list.First(tuple => tuple.Item1 == key);
+            var item = list.First(i => i.Key == key);
             list.Remove(item);
         }
 
-        private static string GetValueByKey(IEnumerable<Tuple<string, string>> list, string key)
+        private static string GetValueByKey(IEnumerable<ParameterDefinition> list, string key)
         {
-            return list.First(tuple => tuple.Item1 == key).Item2;
+            return list.First(i => i.Key == key).Value;
         }
 
-        private static bool ContainsKey(IEnumerable<Tuple<string, string>> list, string key)
+        private static bool ContainsKey(IEnumerable<ParameterDefinition> list, string key)
         {
-            return list.Any(tuple => tuple.Item1 == key);
+            return list.Any(i => i.Key == key);
         }
 
-        public static List<Tuple<string, string>> CreateListOfValuesFromBody(int fiddlerSessionId, string body)
+        public static List<ParameterDefinition> CreateListOfValuesFromString(int fiddlerSessionId, string str)
         {
-            var result = new List<Tuple<string, string>>();
+            var result = new List<ParameterDefinition>();
             
-            if (string.IsNullOrEmpty(body.Trim()))
+            if (string.IsNullOrEmpty(str.Trim()))
             {
                 return result;
             }
 
-            var parameters = body.Split('&');
+            var parameters = str.Split('&');
 
             // body is JSON? XML?
             if (parameters.Length == 1)
             {
                 try
                 {
-                    if (ContentFactory.IsComplexType(body))
+                    if (ContentFactory.IsComplexType(str))
                     {
-                        var res = GetLeavesFromComplexType(body);
-                        result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
+                        var res = GetLeavesFromComplexType(str);
+                        result.AddRange(res);
+                    }
+                    else if (parameters[0].Contains('='))
+                    {
+                        var splitedParameter = parameters[0].Split('=');
+                        if (ContentFactory.IsComplexType(splitedParameter[1]))
+                        {
+                            var res = GetLeavesFromComplexType(splitedParameter[1]);
+                            result.AddRange(res);
+                        }
+                        else
+                        {
+                            result.Add(new ParameterDefinition(splitedParameter[0], splitedParameter[1], ParameterContext.KeyEqualValue));
+                        }
                     }
                     else
                     {
@@ -845,18 +901,18 @@ namespace Abstracta.FiddlerSessionComparer
                         if (splitedParameter.Length == 1)
                         {
                             var res = GetLeavesFromComplexType(parameter);
-                            result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
+                            result.AddRange(res);
                         }
                         else if (splitedParameter.Length == 2)
                         {
                             if (ContentFactory.IsComplexType(splitedParameter[1]))
                             {
                                 var res = GetLeavesFromComplexType(splitedParameter[1]);
-                                result.AddRange(res.Select(item => new Tuple<string, string>(item.Item1, item.Item2)));
+                                result.AddRange(res);
                             }
                             else
                             {
-                                result.Add(new Tuple<string, string>(splitedParameter[0], splitedParameter[1]));
+                                result.Add(new ParameterDefinition(splitedParameter[0], splitedParameter[1], ParameterContext.KeyEqualValue));
                             }
                         }
                         else
@@ -874,9 +930,9 @@ namespace Abstracta.FiddlerSessionComparer
             return result;
         }
 
-        private static IEnumerable<Tuple<string, string>> GetLeavesFromComplexType(string value)
+        private static IEnumerable<ParameterDefinition> GetLeavesFromComplexType(string value)
         {
-            var result = new List<Tuple<string, string>>();
+            var result = new List<ParameterDefinition>();
             var decodedType = HttpUtility.UrlDecode(value);
 
             if (value.Trim() == string.Empty || value == "\"\"") 
@@ -904,14 +960,18 @@ namespace Abstracta.FiddlerSessionComparer
             return result;
         }
 
-        private static IEnumerable<Tuple<string, string>> GetLeavesFromJSON(Dictionary<string, object> jsonValues)
+        private static IEnumerable<ParameterDefinition> GetLeavesFromJSON(Dictionary<string, object> jsonValues)
         {
-            var result = new List<Tuple<string, string>>();
+            var result = new List<ParameterDefinition>();
 
             foreach (var key in jsonValues.Keys)
             {
-                var value = jsonValues[key];
-                if (value is JArray)
+                var value = jsonValues[key] as JToken;
+                if (value == null)
+                {
+                    AddValueToResult(key, jsonValues[key], result);
+                }
+                else if (value is JArray)
                 {
                     var jarray = value as JArray;
                     foreach (var item in jarray)
@@ -924,6 +984,7 @@ namespace Abstracta.FiddlerSessionComparer
                 {
                     var jproperty = value as JProperty;
                     var strValue = jproperty.Value.ToString();
+                    var pContext = ParameterDefinition.GetContextFromJPropertyType(jproperty.Type);
 
                     if (ContentFactory.IsXML(strValue))
                     {
@@ -936,7 +997,7 @@ namespace Abstracta.FiddlerSessionComparer
                     {
                         if (strValue.Length < MaxLengthOfValue)
                         {
-                            result.Add(new Tuple<string, string>(jproperty.Name, strValue));
+                            result.Add(new ParameterDefinition(jproperty.Name, strValue, pContext));
                         }
                     }
                 }
@@ -950,25 +1011,52 @@ namespace Abstracta.FiddlerSessionComparer
                 }
                 else
                 {
-                    var strValue = ((value == null) ? "NULL" : value.ToString());
-                    if (ContentFactory.IsXML(strValue))
-                    {
-                        // this is necesary to process the xml when it has several root elements
-                        strValue = "<root>" + strValue + "</root>";
-                        var xmlValues = XmlContentType.Deserialize(strValue);
-                        result.AddRange(xmlValues.GetLeaves());
-                    }
-                    else
-                    {
-                        if (strValue.Length < MaxLengthOfValue)
-                        {
-                            result.Add(new Tuple<string, string>(key, strValue));
-                        }
-                    }
+                    AddValueToResult(key, jsonValues[key], result);
                 }
             }
 
             return result;
+        }
+
+        private static void AddValueToResult(string key, object value, List<ParameterDefinition> result)
+        {
+            if (value == null)
+            {
+                result.Add(new ParameterDefinition(key, null, ParameterContext.JSonNumberValue));
+                return;
+            }
+
+            var strValue = value.ToString(); 
+            
+            var jValue = value as JValue;
+            var pContext = (jValue == null)
+                               ? ParameterDefinition.GetContextFromStringValue(value)
+                               : ParameterDefinition.GetContextFromJPropertyType(jValue.Type);
+
+            if (ContentFactory.IsXML(strValue))
+            {
+                try
+                {
+                    // this is necesary to process the xml when it has several root elements
+                    var tmpValue = "<root>" + strValue + "</root>";
+                    var xmlValues = XmlContentType.Deserialize(tmpValue);
+                    result.AddRange(xmlValues.GetLeaves());
+                }
+                catch (Exception)
+                {
+                    if (strValue.Length < MaxLengthOfValue)
+                    {
+                        result.Add(new ParameterDefinition(key, strValue, pContext));
+                    }
+                }
+            }
+            else
+            {
+                if (strValue.Length < MaxLengthOfValue)
+                {
+                    result.Add(new ParameterDefinition(key, strValue, pContext));
+                }
+            }
         }
 
         private static bool SameURL(Session s1, Session s2)
@@ -1018,11 +1106,6 @@ namespace Abstracta.FiddlerSessionComparer
             }
 
             return false;
-        }
-
-        private static bool IsPrimaryReq(string url, IEnumerable<string> extenssions)
-        {
-            return extenssions != null && extenssions.Any(url.EndsWith);
         }
 
         private static string GetPathFromURL(string url)

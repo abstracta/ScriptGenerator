@@ -16,19 +16,14 @@ namespace Abstracta.ScriptGenerator
         {
             InitializeComponent();
 
-            const string path = @"D:\Abstracta\Desarrollo\GitHubAbstractaTools\ScriptGenerator\trunk\Examples\BPS\";
-
-            Host.Text = "srvh265:8080";
-            AppName.Text = "PrestamosEvo";
-            FiddlerFileName1.Text = path + "sessions.saz";
-            // FiddlerFileName2.Text = path + "OT2.saz";
-            GxTestFile.Text = path + "Ingreso de vales PASIVOS_script.xml";
-            ResultFolderName.Text = path;
-
-            ReplaceInBodies.IsChecked = false;
         }
 
         private void GenerateScript(object sender, RoutedEventArgs e)
+        {
+            GenerateScript();
+        }
+
+        private void GenerateScript()
         {
             var host = Host.Text;
             var appName = AppName.Text;
@@ -93,8 +88,9 @@ namespace Abstracta.ScriptGenerator
                 }
 
                 var replaceInBodies = ReplaceInBodies.IsChecked != null && ReplaceInBodies.IsChecked.Value;
+                var isGenexusApp = IsGenexusApp.IsChecked != null && IsGenexusApp.IsChecked.Value;
 
-                var generator = new Generators.Framework.ScriptGenerator(path, path, gxTest, sessions, host, appName, replaceInBodies);
+                var generator = new Generators.Framework.ScriptGenerator(path, path, gxTest, sessions, host, appName, isGenexusApp, replaceInBodies);
                 generator.GenerateScripts(GeneratorType.JMeter);
                 generator.GenerateScripts(GeneratorType.Testing);
             }

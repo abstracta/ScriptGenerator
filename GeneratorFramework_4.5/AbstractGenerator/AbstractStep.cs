@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Abstracta.FiddlerSessionComparer;
-using Abstracta.Generators.Framework.AbstractGenerator.Extensions;
+using Abstracta.FiddlerSessionComparer.Utils;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.AbstractGenerator.Validations;
 using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
@@ -95,7 +95,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                                 // add parameter to extract
                                 var newParam = new JMeterRegExParameter(
                                     ExtractFrom.Headers,
-                                    UseIn.Url,
+                                    new List<UseIn> { UseIn.Url },
                                     paramName,
                                     regExp,
                                     "$1$",
@@ -116,17 +116,16 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                                 {
                                     var param = new Parameter
                                         {
-                                            ParameterTarget = UseToReplaceIn.Url,
-                                            ExtractParameterFrom = FiddlerSessionComparer.ExtractFrom.Headers,
-                                            ExtractedFromPage = lastFollowRedirectPage.InfoPage,
-                                            UsedInPages = new List<Page> {page},
+                                            ExtractFromSection = FiddlerSessionComparer.ExtractFrom.Headers,
+                                            ExtractFromPage = lastFollowRedirectPage.InfoPage,
                                             VariableName = paramName,
-                                            Values = new List<string> {urlParameters},
-                                            SourceOfValue =
-                                                new RegExpExtractor(1, regExp, urlParameters, "${" + paramName + "}"),
+                                            Values = new List<string> { urlParameters },
+                                            ParamExtractor = new RegExpExtractor(1, regExp),
                                         };
 
-                                    lastFollowRedirectPage.InfoPage.AddPreparedParameterToExtract(param);
+                                    param.AddParameterPage(page, UseToReplaceIn.Url, urlParameters, "${" + paramName + "}");
+
+                                    lastFollowRedirectPage.InfoPage.AddPreparedParameterToExtract(param, ParameterContext.Default);
                                     page.AddPreparedParameterToUse(param);
                                 }
                             }
@@ -320,13 +319,13 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
                 // e.g. "{"gxCommands":[{"redirect":{"url":"historiaclinicaprincipalv2?INS,0,1,3","forceDisableFrm":1}}]}"
                 var expression = url.Substring(0, index) + "(\\?[^\"]*)\"";
-                return CreateRegExpExtractorToGetRedirectParameters(ExtractFrom.Body, UseIn.Url, NameGenerator.GetInstance().GetNewName(), expression, "$1$", valueToReplace, desc);
+                return CreateRegExpExtractorToGetRedirectParameters(ExtractFrom.Body, new List<UseIn> { UseIn.Url }, NameGenerator.GetInstance().GetNewName(), expression, "$1$", valueToReplace, desc);
             }
 
             return null;
         }
 
-        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string bodyAsString, string expression, string group, string valueToReplace, string description);
+        protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string bodyAsString, string expression, string group, string valueToReplace, string description);
 
         protected abstract AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page);
 

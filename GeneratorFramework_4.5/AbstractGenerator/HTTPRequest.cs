@@ -92,7 +92,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
             var result = _request.fullUrl;
 
-            foreach (var param in ParametersToUse.Where(p => p.UseParameterIn == UseIn.Url))
+            foreach (var param in ParametersToUse.Where(p => p.UseParameterIn.Contains(UseIn.Url)))
             {
                 result = result.Replace(param.ValueToReplace, "${" + param.VariableName + "}");
             }

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Abstracta.ScriptGenerator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Abstracta.Generator" Height="250" Width="700" ResizeMode="NoResize">
+        Title="Abstracta.Generator" Height="300" Width="710" ResizeMode="NoResize">
 
     <Grid>
         <Label Content="Host:Port" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Height="30" Width="100"/>
@@ -23,10 +23,11 @@
         <Label Content="Result Folder" HorizontalAlignment="Left" Margin="10,187,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
         <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,187,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
-        <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="274,232,274,0" VerticalAlignment="Top" Width="146" Click="GenerateScript"/>
+        <CheckBox Content="IsGenexusApp?" HorizontalAlignment="Left" Margin="263,235,0,0" VerticalAlignment="Top" Name="IsGenexusApp"/>
         <CheckBox Content="ReplaceInBodies?" HorizontalAlignment="Left" Margin="125,235,0,0" VerticalAlignment="Top" Name="ReplaceInBodies"/>
-    </Grid>
+        <Button Content="Generate Scripts" HorizontalAlignment="Center" Margin="529,229,29,0" VerticalAlignment="Top" Width="146" Click="GenerateScript"/>
 
+    </Grid>
     <Window.Resources>
         <!--A Style that affects all TextBlocks-->
         <Style TargetType="Label">

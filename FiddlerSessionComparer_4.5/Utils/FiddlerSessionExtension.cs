@@ -3,38 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using Fiddler;
 
-namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
+namespace Abstracta.FiddlerSessionComparer.Utils
 {
-    internal static class FiddlerSessionExtension
+    public static class FiddlerSessionExtension
     {
-        internal static bool IsPrimaryRequest(this Session session)
+        public static bool IsPrimaryRequest(this Session session)
         {
             return SessionUtils.IsPrimaryReq(session);
         }
 
-        internal static bool IsSecondaryRequest(this Session session)
+        public static bool IsSecondaryRequest(this Session session)
         {
             return !session.IsPrimaryRequest();
         }
 
-        internal static bool IsRedirectByResponseCode(this Session request)
+        public static bool IsRedirectByResponseCode(this Session request)
         {
             return 400 > request.responseCode && request.responseCode >= 300;
         }
 
-        internal static bool IsRedirectByJavaScript(this Session request)
+        public static bool IsRedirectByJavaScript(this Session request)
         {
             return IsGenexusRedirect(request) /* || IsOtherKindOfRedirect() */;
         }
 
-        internal static bool IsGenexusRedirect(this Session request)
+        public static bool IsGenexusRedirect(this Session request)
         {
             var gxCommands = GetGxCommandsFromBody(request);
 
             return gxCommands.Any(command => command == "redirect");
         }
 
-        internal static List<string> GetGxCommandsFromBody(this Session request)
+        public static List<string> GetGxCommandsFromBody(this Session request)
         {
             var body = request.GetResponseBodyAsString();
             var index = body.IndexOf("\"gxCommands\"", StringComparison.Ordinal);

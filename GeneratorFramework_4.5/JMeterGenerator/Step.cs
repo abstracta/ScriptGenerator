@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 using Abstracta.FiddlerSessionComparer;
 using Abstracta.Generators.Framework.AbstractGenerator;
@@ -14,7 +15,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 {
     internal class Step : AbstractStep
     {
-        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
+        protected override AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string varName, string expression, string group, string valueToReplace, string description)
         {
             return new JMeterRegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }

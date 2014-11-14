@@ -1,10 +1,11 @@
-﻿using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
+﻿using System.Collections.Generic;
+using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 
 namespace Abstracta.Generators.Framework.OSTAGenerator.ParameterExtractor
 {
     internal class OSTARegExParameter : AbstractRegExParameter
     {
-        internal OSTARegExParameter(ExtractFrom extractParameterFrom, UseIn useParameterIn, string varibleName, string regularExpression, string group, string valueToReplace, string description)
+        internal OSTARegExParameter(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string varibleName, string regularExpression, string group, string valueToReplace, string description)
             : base(extractParameterFrom, useParameterIn, varibleName, regularExpression, group, valueToReplace, description)
         {
         }

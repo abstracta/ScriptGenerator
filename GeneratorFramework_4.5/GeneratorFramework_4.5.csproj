@@ -54,7 +54,6 @@
   <ItemGroup>
     <Compile Include="AbstractGenerator\HTTPRequest.cs" />
     <Compile Include="AbstractGenerator\ParameterExtractor\AbstractRegExParameter.cs" />
-    <Compile Include="AbstractGenerator\Extensions\StringUtils.cs" />
     <Compile Include="AbstractGenerator\AbstractFollowRedirect.cs" />
     <Compile Include="AbstractGenerator\ParameterExtractor\AbstractParameterExtractor.cs" />
     <Compile Include="AbstractGenerator\ParameterExtractor\NameGenerator.cs" />
@@ -66,8 +65,6 @@
     <Compile Include="AbstractGenerator\AbstractStep.cs" />
     <Compile Include="AbstractGenerator\Validations\ResponseCodeValidation.cs" />
     <Compile Include="AbstractGenerator\Validations\DefaultValidation.cs" />
-    <Compile Include="AbstractGenerator\Extensions\FiddlerSessionExtension.cs" />
-    <Compile Include="AbstractGenerator\Extensions\SessionUtils.cs" />
     <Compile Include="AbstractGenerator\Validations\AbstractValidation.cs" />
     <Compile Include="Constants\HTTPConstants.cs" />
     <Compile Include="JMeterGenerator\AuxiliarClasses\CommonArgumentTypes.cs" />
@@ -144,6 +141,9 @@
       <Project>{e228fdb9-9b9b-43b5-a9c1-ab11aa47f136}</Project>
       <Name>FiddlerSessionComparer_4.5</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AbstractGenerator\Extensions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

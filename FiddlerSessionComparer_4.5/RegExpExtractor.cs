@@ -1,13 +1,12 @@
 ﻿namespace Abstracta.FiddlerSessionComparer
 {
-    public class RegExpExtractor : ParameterSoure
+    public class RegExpExtractor : Extractor
     {
         public int GroupNumber { get; set; }
         
         public string RegExp { get; set; }
 
-        public RegExpExtractor(int groupNumber, string regExp, string replaceValue, string replaceWith)
-            : base(replaceWith, replaceValue)
+        public RegExpExtractor(int groupNumber, string regExp)
         {
             GroupNumber = groupNumber;
             RegExp = regExp;
@@ -18,9 +17,13 @@
             return "{ " +
                    "GroupNumber='" + GroupNumber + "' " +
                    "RegExp='" + RegExp + "' " +
-                   "ReplaceValue='" + ReplaceValue + "' " +
-                   "ReplaceWith='" + ReplaceWith + "'" +
+                   ////"ReplaceValue='" + ReplaceValue + "' " +
+                   ////"ReplaceWith='" + ReplaceWith + "'" +
                    "}";
         } 
+    }
+
+    public class Extractor
+    {
     }
 }

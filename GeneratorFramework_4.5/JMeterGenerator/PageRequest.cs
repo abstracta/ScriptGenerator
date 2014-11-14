@@ -224,6 +224,8 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             //var index = elementName.IndexOf("/${webApp}", StringComparison.Ordinal);
             //var path = elementName.Substring(index);
 
+            var protocol = request.isHTTPS ? "HTTPS" : "HTTP";
+
             string path;
             int index;
 
@@ -236,7 +238,10 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             }
             else
             {
-                index = urlRequest.IndexOf("http://", StringComparison.Ordinal);
+                index = (request.isHTTPS)
+                            ? urlRequest.IndexOf("https://", StringComparison.Ordinal)
+                            : urlRequest.IndexOf("http://", StringComparison.Ordinal);
+
                 if (index == -1)
                 {
                     index = urlRequest.IndexOf("/", StringComparison.Ordinal);
@@ -254,8 +259,6 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     }
                 }
             }
-
-            var protocol = request.isHTTPS ? "HTTPS" : "HTTP";
 
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.domain", serverName);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.port", "" + serverPortName);
@@ -301,7 +304,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                 WriteElement(xmlWriter, extractor);
             }
 
-            // adding parameters extractor detected when comparing several fiddler sessions
+            // adding the parameter extractors that were detected by comparing fiddler sessions
             if (page != null)
             {
                 var parms = new List<JMeterRegExParameter>();
@@ -313,13 +316,13 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                           + string.Join(",", parameter.UsedInPages.Select(p => p.Id + "").ToArray())
                                           + " } Original value: " + parameter.Values[0];
 
-                    if (parameter.IsSourceOfValueDefined() && parameter.SourceOfValue is RegExpExtractor)
+                    if (parameter.ParamExtractor is RegExpExtractor)
                     {
-                        var valueSource = parameter.SourceOfValue as RegExpExtractor;
+                        var valueSource = parameter.ParamExtractor as RegExpExtractor;
                         var regExp = valueSource.RegExp;
 
-                        var extractFrom = GetExtractFrom(parameter.ExtractParameterFrom);
-                        var usedIn = GetUsedIn(parameter.ParameterTarget);
+                        var extractFrom = GetExtractFrom(parameter.ExtractFromSection);
+                        var usedIn = GetUsedIn(parameter.TargetsOfPage(page));
                         var newValue = new JMeterRegExParameter(
                             extractFrom,
                             usedIn,
@@ -392,18 +395,29 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             xmlWriter.WriteEndElement();
         }
 
-        private static UseIn GetUsedIn(UseToReplaceIn parameterTarget)
+        private static List<UseIn> GetUsedIn(IEnumerable<UseToReplaceIn> parametersTarget)
         {
-            switch (parameterTarget)
-            {
-                case UseToReplaceIn.Body:
-                    return UseIn.Body;
-                case UseToReplaceIn.Url:
-                    return UseIn.Url;
+            var res = new List<UseIn>();
 
-                default:
-                    return UseIn.Body;
+            foreach (var parameterTarget in parametersTarget)
+            {
+                switch (parameterTarget)
+                {
+                    case UseToReplaceIn.Body:
+                        res.Add(UseIn.Body);
+                        break;
+
+                    case UseToReplaceIn.Url:
+                        res.Add(UseIn.Url);
+                        break;
+
+                    default:
+                        res.Add(UseIn.Body);
+                        break;
+                }
             }
+
+            return res;
         }
 
         private static ExtractFrom GetExtractFrom(FiddlerSessionComparer.ExtractFrom extractParameterFrom)

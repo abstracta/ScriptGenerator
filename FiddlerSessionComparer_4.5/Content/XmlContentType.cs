@@ -117,13 +117,13 @@ namespace Abstracta.FiddlerSessionComparer.Content
             return root;
         }
 
-        public IEnumerable<Tuple<string, string>> GetLeaves()
+        public IEnumerable<ParameterDefinition> GetLeaves()
         {
-            var result = Attributes.Select(attribute => new Tuple<string, string>(attribute.Key, attribute.Value)).ToList();
+            var result = Attributes.Select(attribute => new ParameterDefinition(attribute.Key, attribute.Value, ParameterContext.XMLAttribute)).ToList();
 
             if (!string.IsNullOrEmpty(Value))
             {
-                result.Add(new Tuple<string, string>(TagName, Value));
+                result.Add(new ParameterDefinition(TagName, Value, ParameterContext.XMLValue));
             }
             else 
             {

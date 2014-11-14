@@ -1,6 +1,6 @@
 ﻿namespace Abstracta.FiddlerSessionComparer
 {
-    public class ParameterSoure
+    public class Replacement
     {
         /// <summary>
         /// This is the parameterName
@@ -12,7 +12,7 @@
         /// </summary>
         public string ReplaceValue { get; set; }
 
-        public ParameterSoure(string replaceWith, string replaceValue)
+        public Replacement(string replaceWith, string replaceValue)
         {
             ReplaceWith = replaceWith;
             ReplaceValue = replaceValue;

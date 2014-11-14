@@ -64,14 +64,18 @@
     <Compile Include="EqualsResult.cs" />
     <Compile Include="FiddlerSessionComparer.cs" />
     <Compile Include="Parameter.cs" />
-    <Compile Include="ParameterSoure.cs" />
+    <Compile Include="ParameterDefinition.cs" />
+    <Compile Include="Replacement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\FiddlerSessionExtension.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\NameFactory.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="RegExpExtractor.cs" />
     <Compile Include="Utils\SAZ-DOTNETZIP.cs" />
     <Compile Include="Content\XmlContentType.cs" />
+    <Compile Include="Utils\SessionUtils.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

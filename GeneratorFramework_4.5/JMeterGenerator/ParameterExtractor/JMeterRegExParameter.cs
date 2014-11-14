@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 using Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor;
 using Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses;
@@ -7,7 +8,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor
 {
     internal class JMeterRegExParameter : AbstractRegExParameter
     {
-        internal JMeterRegExParameter(ExtractFrom extractParameterFrom, UseIn useParameterIn, string variableName, string regularExpression, string group, string valueToReplace, string description)
+        internal JMeterRegExParameter(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string variableName, string regularExpression, string group, string valueToReplace, string description)
             : base(extractParameterFrom, useParameterIn, variableName, regularExpression, group, valueToReplace, description)
         {
         }

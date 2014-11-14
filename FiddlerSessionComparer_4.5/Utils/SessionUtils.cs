@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Fiddler;
 
-namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
+namespace Abstracta.FiddlerSessionComparer.Utils
 {
     internal class SessionUtils
     {
@@ -23,7 +23,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
 
         //// private static readonly string[] PrimaryExtensions = new[] {".htm", ".html", ".aspx", ".ashx", ".php", "faces", "svc", ".svc/"};
 
-        private static readonly string[] SecondaryExtensions = new[] {".js", ".css", ".jpg", ".jpeg", ".png", ".gif"};
+        private static readonly string[] SecondaryExtensions = new[] {".js", ".css", ".jpg", ".jpeg", ".png", ".gif",".ico", ".woff"};
 
         internal static bool IsPrimaryReq(Session req)
         {
@@ -32,11 +32,11 @@ namespace Abstracta.Generators.Framework.AbstractGenerator.Extensions
             // NP 17/01/2014 - Se agrega soporte pra .svc
             // NP 23/01/2014 - Se agrega la lectura opcional de un archivo en el que se pueden especificar
             // nuevas extensiones a ser consideradas pedidos primarios.
-            var uri = new Uri(req.fullUrl);
+            var uri = new Uri(req.fullUrl).LocalPath.ToLower();
 
-            var isSecondaryReq = SecondaryExtensions.Any(h => uri.LocalPath.EndsWith(h));
-            var isSecondaryReq2 = isSecondaryReq || SecondaryExtensions.Any(h => uri.LocalPath.Contains(h + "?"));
-            var isSecondaryReq3 = isSecondaryReq2 || uri.LocalPath.Contains("GXResourceProv");
+            var isSecondaryReq = SecondaryExtensions.Any(uri.EndsWith);
+            var isSecondaryReq2 = isSecondaryReq || SecondaryExtensions.Any(h => uri.Contains(h + "?"));
+            var isSecondaryReq3 = isSecondaryReq2 || uri.Contains("GXResourceProv");
 
             return !isSecondaryReq3;
 

@@ -15,6 +15,7 @@
             Key = key;
             Value1 = value1;
             Value2 = value2;
+
             AreEqual = Value1 == Value2;
         }
 
