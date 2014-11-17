@@ -10,20 +10,23 @@ Two tools are in this project:
 
 1 - FiddlerSessionComparer
 ---------------------------
-FiddlerSessionComparer creates a 'Page' structure from two or more (not yet available)  FiddlerSessions files. 
+FiddlerSessionComparer creates a 'Page' structure from two or more (not yet available) FiddlerSessions files. 
 Each HTTP request (or Fiddler Session) will correspond to a 'Page', and one 'Page' will contain one HTTP request.
 Each 'Page' knows his "parent" 'Page', and its "Followers" 'Pages', creating a three structure of Pages.
 
 After comparing two HTTP requests from the two FiddlerSessions file, the comparer will detect differences in the parameters. 
 Each difference will be a 'Parameter'. The value of the parameter is known in the response of the "parent" 'Page', and its going 
 to be used in one or more Pages. 
-So, each 'Page' also has a list of Parameters to Extract, and a list of Parameters to Use. 
+So, each 'Page' has a list of Parameters to Extract, and a list of Parameters to Use. 
+And each Parameter will know where and how to be extracted, and where (page and section: {body, header, url}) and how to be used (how to replace the currect value with the parameter))
 
-There are still some issues or not supported cases in the comparer. For example:
- - HTTP POST BODY containing a parameter where it's value is a very complex JSON structure of values and lists. The comparer still don't know how to compare this case.
- - HTTP GET URL PARAMETERS. The comparer compares the whole parameters, instead of one by one.
- - Somethimes the Comparer don't find a Page where to extract a Parameter. It's needed to study those cases.
- 
+Now some new features are supported:
+- a parameter can be used in different contexts in different pages. For example: Parameter Key=name, Value=Simon, is used as parameter in an URL as CSV, and also inside a POST BODY. The comparer will reuse the parameter for both situations. That means, now differences in parameters in URLs are detected.
+- Complex structures are now well managed. For example, a parameter in a body where its value is a JSON, that contains an XML somewhere inside. Now the comparar will extract the leads of the parameters structure and use that to compare. JSON and XML formats are supported.
+
+Also a cup of test cases where added to the solutions. We will add more in the future.
+
+
  
 2 - GeneratorFramework
 ---------------------------
