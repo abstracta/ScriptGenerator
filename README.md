@@ -1,44 +1,25 @@
 ScriptGenerator
 ===============
 
-.NET Tool used to create OpenSTA script or JMeter script from Fiddler sessions.
+This project started with the aim of simplify the way we make scripts in JMeter. There are a lot of ways to create a JMeter script, and we find one that we think is awesome :). Also, we realized that we could extend this tool, not only for JMeter, and we are trying to include OpenSTA support.
 
-
-Two tools are in this project:
+Basically we have two main tools in this solution:
 1 - FiddlerSessionComparer
 2 - GeneratorFramework
 
 1 - FiddlerSessionComparer
 ---------------------------
-FiddlerSessionComparer creates a 'Page' structure from two or more (not yet available) FiddlerSessions files. 
-Each HTTP request (or Fiddler Session) will correspond to a 'Page', and one 'Page' will contain one HTTP request.
-Each 'Page' knows his "parent" 'Page', and its "Followers" 'Pages', creating a three structure of Pages.
+Fiddler Session Comparer (FSC) creates a tree view structure based on the "Fiddler sessions". As we know, when we request a page, the page invokes some resources (images, css, js) that it needs to show itself. So, we would say that the first HTTP request is the primary request and the other ones corresponding to additional resources like images, js and css are secondary requests. So, in this manner we would create a tree view for HTTP request.
 
-After comparing two HTTP requests from the two FiddlerSessions file, the comparer will detect differences in the parameters. 
-Each difference will be a 'Parameter'. The value of the parameter is known in the response of the "parent" 'Page', and its going 
-to be used in one or more Pages. 
-So, each 'Page' has a list of Parameters to Extract, and a list of Parameters to Use. 
-And each Parameter will know where and how to be extracted, and where (page and section: {body, header, url}) and how to be used (how to replace the currect value with the parameter))
-
-Now some new features are supported:
-- a parameter can be used in different contexts in different pages. For example: Parameter Key=name, Value=Simon, is used as parameter in an URL as CSV, and also inside a POST BODY. The comparer will reuse the parameter for both situations. That means, now differences in parameters in URLs are detected.
-- Complex structures are now well managed. For example, a parameter in a body where its value is a JSON, that contains an XML somewhere inside. Now the comparar will extract the leads of the parameters structure and use that to compare. JSON and XML formats are supported.
-
-Also a cup of test cases where added to the solutions. We will add more in the future.
-
-
+FCS uses from two or more (nowadays, just two, we are working to add more) Fiddler Sessions files. After comparing two HTTP requests from Fiddler Sessions files, the comparer detect differences between requests. Each difference is a 'Parameter'. This parameters are reused along all the analysis.
  
 2 - GeneratorFramework
 ---------------------------
-Until now, it just generates to JMeter script. But it'll generate to OpenSTA too, after we merge this tool with other code we have in Abstracta.
-Using comments to group HTTP Requests in the FiddlerSession file, it'll create "steps" in the script, that will contain the requests of the group. 
-It'll also group the Redirects, and the "Secondary Requests" of each "Main Request". Secondary Requests are images, css, js, and all static content.
-The generator also creates validations for the requests, and adds some logic to help "debuggin" the script.
 
-When combining with the FiddlerSessionComparer (using two FiddlerSessions instead of just one), the Generator creates RegExp Extractors to extract 
-values from one response and to use them in the next request.
-It does all the magic! :)
+So far it just generates JMeter scripts, but it will generate OpenSTA scripts too, after we merge this tool with another one we have in Abstracta. Using comments to group HTTP Requests in the Fiddler Session file, the tool creates "steps" in the script a group of requests. It'll also group the Redirects and the "Secondary Requests" of each "Main Request" (images, css, js, and all static content are considered Secondary Requests). The generator also creates validations for the requests, and adds some logic to help "debugging" the script.
 
-It also has some bugs, and maybe it doesn't support all the cases in the world... but please send us ur cases, or just fork the project and add the code that you need.
+When combining it with the FiddlerSessionComparer (using two FiddlerSessions instead of just one), the Generator creates RegExp Extractors to extract values from one response and to use them in the next request. It does all the magic! :)
+
+It also has some bugs, and maybe it doesn't support all the cases in the world... but please send us your cases, or just fork the project and add the code that you need.
 
 
