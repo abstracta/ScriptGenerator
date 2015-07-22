@@ -55,9 +55,9 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
                 // jmeterTestPlan
                 xmlWriter.WriteStartElement("jmeterTestPlan");
-                xmlWriter.WriteAttributeString("version", "1.2");
-                xmlWriter.WriteAttributeString("properties", "2.5");
-                xmlWriter.WriteAttributeString("jmeter", "2.10 r1533061");
+                xmlWriter.WriteAttributeString("version", "1.2"); // TODO add parameter config for version attr
+                xmlWriter.WriteAttributeString("properties", "2.5"); // TODO add parameter config for properties attr
+                xmlWriter.WriteAttributeString("jmeter", "2.10 r1533061"); // TODO add parameter config for jmeter version
 
                 // hashTree of jMeterTestPlan
                 xmlWriter.WriteStartElement("hashTree");
