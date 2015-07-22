@@ -4,8 +4,8 @@ ScriptGenerator
 This project started with the aim of simplify the way we make scripts in JMeter. There are a lot of ways to create a JMeter script, and we find one that we think is awesome :). Also, we realized that we could extend this tool, not only for JMeter, and we are trying to include OpenSTA support.
 
 Basically we have two main tools in this solution:
-1 - FiddlerSessionComparer
-2 - GeneratorFramework
+* FiddlerSessionComparer
+* GeneratorFramework
 
 1 - FiddlerSessionComparer
 ---------------------------
