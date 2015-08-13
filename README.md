@@ -1,44 +1,46 @@
 ScriptGenerator
 ===============
 
-.NET Tool used to create OpenSTA script or JMeter script from Fiddler sessions.
+This project started with the aim of simplify the way we make scripts in JMeter. There are a lot of ways to create a JMeter script, and we find one that we think is awesome :). Also, we realized that we could extend this tool, not only for JMeter, and we are trying to include OpenSTA support.
 
-
-Two tools are in this project:
-1 - FiddlerSessionComparer
-2 - GeneratorFramework
+Basically we have two main tools in this solution:
+* FiddlerSessionComparer
+* GeneratorFramework
 
 1 - FiddlerSessionComparer
 ---------------------------
-FiddlerSessionComparer creates a 'Page' structure from two or more (not yet available) FiddlerSessions files. 
-Each HTTP request (or Fiddler Session) will correspond to a 'Page', and one 'Page' will contain one HTTP request.
-Each 'Page' knows his "parent" 'Page', and its "Followers" 'Pages', creating a three structure of Pages.
+Fiddler Session Comparer (FSC) creates a tree view structure based on the "Fiddler sessions". As we know, when we request a page, the page invokes some resources (images, css, js) that it needs to show itself. So, we would say that the first HTTP request is the primary request and the other ones corresponding to additional resources like images, js and css are secondary requests. So, in this manner we would create a tree view for HTTP request.
 
-After comparing two HTTP requests from the two FiddlerSessions file, the comparer will detect differences in the parameters. 
-Each difference will be a 'Parameter'. The value of the parameter is known in the response of the "parent" 'Page', and its going 
-to be used in one or more Pages. 
-So, each 'Page' has a list of Parameters to Extract, and a list of Parameters to Use. 
-And each Parameter will know where and how to be extracted, and where (page and section: {body, header, url}) and how to be used (how to replace the currect value with the parameter))
-
-Now some new features are supported:
-- a parameter can be used in different contexts in different pages. For example: Parameter Key=name, Value=Simon, is used as parameter in an URL as CSV, and also inside a POST BODY. The comparer will reuse the parameter for both situations. That means, now differences in parameters in URLs are detected.
-- Complex structures are now well managed. For example, a parameter in a body where its value is a JSON, that contains an XML somewhere inside. Now the comparar will extract the leads of the parameters structure and use that to compare. JSON and XML formats are supported.
-
-Also a cup of test cases where added to the solutions. We will add more in the future.
-
-
+FCS uses from two or more (nowadays, just two, we are working to add more) Fiddler Sessions files. After comparing two HTTP requests from Fiddler Sessions files, the comparer detect differences between requests. Each difference is a 'Parameter'. This parameters are reused along all the analysis.
  
 2 - GeneratorFramework
 ---------------------------
-Until now, it just generates to JMeter script. But it'll generate to OpenSTA too, after we merge this tool with other code we have in Abstracta.
-Using comments to group HTTP Requests in the FiddlerSession file, it'll create "steps" in the script, that will contain the requests of the group. 
-It'll also group the Redirects, and the "Secondary Requests" of each "Main Request". Secondary Requests are images, css, js, and all static content.
-The generator also creates validations for the requests, and adds some logic to help "debuggin" the script.
 
-When combining with the FiddlerSessionComparer (using two FiddlerSessions instead of just one), the Generator creates RegExp Extractors to extract 
-values from one response and to use them in the next request.
-It does all the magic! :)
+We created a simple windows command line tool (and GUI) which uses [Fiddler](http://www.telerik.com/fiddler) sessions to create JMeter scripts. You can find our program [here](https://github.com/hdlopez/ScriptGenerator/tree/master/Binaries%20.NET%204.5). You must record your sessions with Fiddler, pretty straightforward. While you are recording your sessiong mark with a comment every step of your session. For instance, let´s say that you are recording a test case consisting in search something in google. Your first step will be open www.google.com and then, the second one will be type your query in the search box and hit "search in google". To improve the JMeter generation and help the generator to understand your session, select all the request in your Fiddler session corresponding for the first step, and mark them with a comment, for example with the text "step 1". Then, select all the requests corresponding to your second step and mark them as well, and so on if you have more steps.
 
-It also has some bugs, and maybe it doesn't support all the cases in the world... but please send us ur cases, or just fork the project and add the code that you need.
+Finally execute the program to create the JMeter script in the following way
+
+    Abstracta.ScriptGeneratorCLI_4.5.exe -h myapp.com -p 80 -a home -f C:\scripts\yourFiddlerSession1.saz -f C:\scripts\yourFiddlerSession2.saz -o C:\script\outputFolder\
+
+The program will create the script and will store it in a file called _AutogeneratedName.jmx located at your output folder (in the example, C:\script\outputFolder\).
+
+You can type help for more info or use the GUI if you feel more confortable
+
+    -h, --host=VALUE           (required) host name where your web app is
+                               hosted. Example: https://myapp.com/home, host =
+                               myapp.com
+    -p, --port=VALUE           port number where your web app is listening.
+                               Example: https://myapp.com/home, port = 443
+                               This must be an integer. By default the value is
+
+                               80.
+    -a, --app=VALUE            relative application name. Example:
+                               https://myapp.com/home, app = home
+    -o, --output=VALUE         (required) output path
+
+    -f, --fiddlerPath=VALUE    (required) fiddler session path
+      --help                 show this message and exit
+
+Hope it helps someone
 
 

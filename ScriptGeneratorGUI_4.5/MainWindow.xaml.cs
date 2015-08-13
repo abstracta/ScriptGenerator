@@ -25,12 +25,12 @@ namespace Abstracta.ScriptGenerator
 
         private void GenerateScript()
         {
-            var host = Host.Text;
-            var appName = AppName.Text;
+            string host = Host.Text;
+            string appName = AppName.Text;
 
             try
             {
-                var path = ResultFolderName.Text;
+                string path = ResultFolderName.Text;
                 if (!Directory.Exists(path))
                 {
                     throw new Exception("Folder doesn't exists: " + path);
@@ -41,11 +41,11 @@ namespace Abstracta.ScriptGenerator
                     path += "\\";
                 }
 
-                var f1 = FiddlerFileName1.Text;
-                var f2 = FiddlerFileName2.Text;
+                string f1 = FiddlerFileName1.Text;
+                string f2 = FiddlerFileName2.Text;
 
                 // create array of sessions
-                var sessions = (string.IsNullOrEmpty(f2))? new Session[1][] : new Session[2][];
+                Session[][] sessions = (string.IsNullOrEmpty(f2)) ? new Session[1][] : new Session[2][];
 
                 if (!File.Exists(f1))
                 {

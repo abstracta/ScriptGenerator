@@ -31,4 +31,7 @@ rmdir /S /Q ScriptGeneratorGUI_3.5\obj
 rmdir /S /Q ScriptGeneratorGUI_4.5\bin
 rmdir /S /Q ScriptGeneratorGUI_4.5\obj
 
+rmdir /S /Q ScriptGeneratorCLI_4.5\bin
+rmdir /S /Q ScriptGeneratorCLI_4.5\obj
+
 pause

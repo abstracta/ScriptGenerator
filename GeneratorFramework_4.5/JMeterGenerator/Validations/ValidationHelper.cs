@@ -25,7 +25,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.Validations
                 };
 
                 // <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assert - " enabled="true">
-                JMeterWrapper.WriteStartElement(xmlWriter, "ResponseAssertion", "AssertionGui", "ResponseAssertion", title, "true");
+                JMeterWrapper.WriteStartElement(xmlWriter, "ResponseAssertion", "AssertionGui", "ResponseAssertion", title, "false");
 
                 // <collectionProp name="Asserion.test_strings">
                 JMeterWrapper.WriteStartElement(xmlWriter, "collectionProp", "Asserion.test_strings");
