@@ -5,23 +5,23 @@
 
     <Grid>
         <Label Content="Host:Port" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Height="30" Width="100"/>
-        <TextBox Name="Host" HorizontalAlignment="Left" Height="30" Margin="125,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
+        <TextBox Name="Host" HorizontalAlignment="Left" Height="30" Margin="125,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200" Text=""/>
 
         <Label Content="Application name" HorizontalAlignment="Left" Margin="350,25,0,0" VerticalAlignment="Top" Height="35" Width="105"/>
-        <TextBox Name="AppName" HorizontalAlignment="Left" Height="30" Margin="475,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200"/>
+        <TextBox Name="AppName" HorizontalAlignment="Left" Height="30" Margin="475,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="200" Text=""/>
 
         <Label Content="XML GxTest File" HorizontalAlignment="Left" Margin="10,77,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
         <TextBox Name="GxTestFile" HorizontalAlignment="Left" Height="30" Margin="125,77,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
 
 
         <Label Content="Fiddler Session 1" HorizontalAlignment="Left" Margin="10,117,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="FiddlerFileName1" HorizontalAlignment="Left" Height="30" Margin="125,117,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+        <TextBox Name="FiddlerFileName1" HorizontalAlignment="Left" Height="30" Margin="125,117,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550" Text=""/>
 
         <Label Content="Fiddler Session 2" HorizontalAlignment="Left" Margin="10,152,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="FiddlerFileName2" HorizontalAlignment="Left" Height="30" Margin="125,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+        <TextBox Name="FiddlerFileName2" HorizontalAlignment="Left" Height="30" Margin="125,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550" Text=""/>
 
         <Label Content="Result Folder" HorizontalAlignment="Left" Margin="10,187,0,0" VerticalAlignment="Top" Height="30" Width="111"/>
-        <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,187,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550"/>
+        <TextBox Name="ResultFolderName" HorizontalAlignment="Left" Height="30" Margin="125,187,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="550" Text=""/>
 
         <CheckBox Content="IsGenexusApp?" HorizontalAlignment="Left" Margin="263,235,0,0" VerticalAlignment="Top" Name="IsGenexusApp"/>
         <CheckBox Content="ReplaceInBodies?" HorizontalAlignment="Left" Margin="125,235,0,0" VerticalAlignment="Top" Name="ReplaceInBodies"/>

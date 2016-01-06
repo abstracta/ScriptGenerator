@@ -47,7 +47,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
             var threads = "threads" + ScriptName;
             var iterations = "iterations" + ScriptName;
-            var rumpUp = "rumpUp" + ScriptName;
+            var rampUp = "rampUp" + ScriptName;
 
             using (var xmlWriter = XmlWriter.Create(HomeFolder + ScriptName + ".jmx", xmlWriterSettings))
             {
@@ -64,7 +64,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
                 # region Test plan definition
 
-                InitializeTestPlan(xmlWriter, threads, iterations, rumpUp);
+                InitializeTestPlan(xmlWriter, threads, iterations, rampUp);
 
                 # endregion Test plan definition
 
@@ -93,7 +93,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                 # region ThreadGroup
 
                 // adding default Thread Group
-                JMeterWrapper.WriteThreadGroup(xmlWriter, ScriptName, threads, iterations, rumpUp);
+                JMeterWrapper.WriteThreadGroup(xmlWriter, ScriptName, threads, iterations, rampUp);
 
                 // hashTree of threadGroup
                 xmlWriter.WriteStartElement("hashTree");

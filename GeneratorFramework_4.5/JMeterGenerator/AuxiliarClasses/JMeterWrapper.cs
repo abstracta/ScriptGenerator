@@ -73,23 +73,23 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
             <hashTree/>
              */
 
-            WriteStartElement(xmlWriter, "RegexExtractor", "RegexExtractorGui", "RegexExtractor",
-                            "RegExp Extractor - Example", "false");
+            //WriteStartElement(xmlWriter, "RegexExtractor", "RegexExtractorGui", "RegexExtractor",
+            //                "RegExp Extractor - Example", "false");
 
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", "false");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.refname", "VARIABLE_NAME");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.regex",
-                                       ",\"VARIABLE_NAME\":\"([^\"]+*)\",");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", "$1$");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.default", "NOT FOUND");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.match_number", "1");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", "false");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.refname", "VARIABLE_NAME");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.regex",
+            //                           ",\"VARIABLE_NAME\":\"([^\"]+*)\",");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", "$1$");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.default", "NOT FOUND");
+            //WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.match_number", "1");
 
-            xmlWriter.WriteEndElement();
+            //xmlWriter.WriteEndElement();
 
-            // Add and close 'hashTree'
-            xmlWriter.WriteStartElement("hashTree");
-            xmlWriter.WriteEndElement();
-            //*/
+            //// Add and close 'hashTree'
+            //xmlWriter.WriteStartElement("hashTree");
+            //xmlWriter.WriteEndElement();
+            ////*/
         }
 
         internal static void WriteCSVDataSet(XmlWriter xmlWriter, string fileName, string variableNames)
