@@ -76,17 +76,20 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                 # region Common Elements
 
                 // Adding Arguments 
-                JMeterWrapper.WriteArgument(xmlWriter, CommonArgumentTypes.Paths);
+                if (!IsBMScript)
+                    JMeterWrapper.WriteArgument(xmlWriter, CommonArgumentTypes.Paths);
                 JMeterWrapper.WriteArgument(xmlWriter, CommonArgumentTypes.ThinkTimes);
-                JMeterWrapper.WriteArgument(xmlWriter, CommonArgumentTypes.HTTPHeaders);
 
                 // Adding ResultCollectors 
-                JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResultsXMLFile);
-                JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResultsLogFile);
-                JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.AggregateReport);
-                JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ViewResultsInTable);
                 JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ViewResultsTree);
-                JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResponseTimeGraph);
+                if (!IsBMScript)
+                { 
+                    JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResultsXMLFile);
+                    JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResultsLogFile);
+                    JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.AggregateReport);
+                    JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ViewResultsInTable);
+                    JMeterWrapper.WriteResultCollector(xmlWriter, CommonCollectorTypes.ResponseTimeGraph);
+                }
 
                 # endregion Common Elements
 
@@ -138,23 +141,17 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
             // <collectionProp name="Arguments.arguments">
             JMeterWrapper.WriteStartElement(xmlWriter, "collectionProp", "Arguments.arguments");
-
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "HomeFolder", HomeFolder);
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",
-                                        "-----------------------------------");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNameServer, servName);
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNamePort, servPort);
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNameWebApp, WebAppName);
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",
-                                        "-----------------------------------");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, threads, "${__P(tut1,1)}");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, iterations, "${__P(iut1,1)}");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, rumpUp, "${__P(rut1,3600)}");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",
-                                        "-----------------------------------");
+            if (!IsBMScript)
+                JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "HomeFolder", HomeFolder);
+            //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",
+            //                            "-----------------------------------");
+            //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNameServer, servName);
+            //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNamePort, servPort);
+            //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNameWebApp, WebAppName);
+            //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",
+            //                            "-----------------------------------");
             JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableNameDebug, "0");
-            JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, HTTPConstants.VariableLogFails, "1");
-
+ 
             // collectionProp
             xmlWriter.WriteEndElement();
 
@@ -171,6 +168,11 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
         private void AddThreadGroupContent(XmlWriter xmlWriter)
         {
             JMeterWrapper.WriteCookieManager(xmlWriter);
+
+            string servName, servPort;
+            GetServerAndPortFromServerName(ServerName, out servName, out servPort);
+
+            JMeterWrapper.WriteHTTPDefault(xmlWriter, servName, servPort);
 
             foreach (var dataPool in _dataPools)
             {

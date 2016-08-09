@@ -66,6 +66,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                               "TransactionController", Name, "true");
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "TransactionController.parent", "false");
                 JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "TestPlan.comments", Desc);
+                JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "TransactionController.includeTimers", "false");
                 xmlWriter.WriteEndElement();
 
                 xmlWriter.WriteStartElement("hashTree");

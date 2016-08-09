@@ -18,7 +18,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 {
     internal class PageRequest : AbstractPageRequest
     {
-        private static readonly string[] ExcludedHttpHeaders = { "Cookie" };
+        private static readonly string[] ExcludedHttpHeaders = { "Cookie",  "Content-Length", "Connection"};
 
         internal PageRequest(Session request, AbstractStep myStep, Page page)
             : base(request, myStep, page)
@@ -82,36 +82,36 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     xmlWriter.WriteEndElement();
                 }
 
-                // Adding secondary Requests
-                if (SecondaryRequests.Count > 0)
-                {
-                    JMeterWrapper.WriteStartElement(xmlWriter, "GenericController", "LogicControllerGui", "GenericController", "Secondary Requests", "true");
-                    xmlWriter.WriteEndElement();
+                //// Adding secondary Requests
+                //if (SecondaryRequests.Count > 0)
+                //{
+                //    JMeterWrapper.WriteStartElement(xmlWriter, "GenericController", "LogicControllerGui", "GenericController", "Secondary Requests", "true");
+                //    xmlWriter.WriteEndElement();
 
-                    xmlWriter.WriteStartElement("hashTree");
+                //    xmlWriter.WriteStartElement("hashTree");
 
-                    // if controller
-                    JMeterWrapper.WriteStartElement(xmlWriter, "IfController", "IfControllerPanel", "IfController", "If Controller", "true");
-                    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "IfController.condition", "${" + HTTPConstants.VariableNameDebug + "} == 0");
-                    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "IfController.evaluateAll", "false");
-                    xmlWriter.WriteEndElement();
+                //    // if controller
+                //    JMeterWrapper.WriteStartElement(xmlWriter, "IfController", "IfControllerPanel", "IfController", "If Controller", "true");
+                //    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "IfController.condition", "${" + HTTPConstants.VariableNameDebug + "} == 0");
+                //    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "IfController.evaluateAll", "false");
+                //    xmlWriter.WriteEndElement();
 
-                    xmlWriter.WriteStartElement("hashTree");
+                //    xmlWriter.WriteStartElement("hashTree");
 
-                    // write response assertion to skip HTTP response code validation
-                    JMeterWrapper.WriteResponseAssertionSkipHTTPResponse(xmlWriter);
+                //    // write response assertion to skip HTTP response code validation
+                //    JMeterWrapper.WriteResponseAssertionSkipHTTPResponse(xmlWriter);
 
-                    foreach (var secondaryRequest in SecondaryRequests)
-                    {
-                        WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null, secondaryRequest.fullUrl);
-                    }
+                //    foreach (var secondaryRequest in SecondaryRequests)
+                //    {
+                //        WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null, secondaryRequest.fullUrl);
+                //    }
 
-                    // </hashTree> 'if' controller
-                    xmlWriter.WriteEndElement();
+                //    // </hashTree> 'if' controller
+                //    xmlWriter.WriteEndElement();
 
-                    // </hashTree> 'generic' controller
-                    xmlWriter.WriteEndElement();
-                }
+                //    // </hashTree> 'generic' controller
+                //    xmlWriter.WriteEndElement();
+                //}
 
                 xmlWriter.Flush();
 
@@ -133,13 +133,13 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             var httpMethod = request.oRequest.headers.HTTPMethod;
 
             string urlRequest;
-            var serverName = "${" + HTTPConstants.VariableNameServer + "}";
-            var serverPortName = "${" + HTTPConstants.VariableNamePort + "}";
+            var serverName = "";//"${" + HTTPConstants.VariableNameServer + "}";
+            var serverPortName = "";//"${" + HTTPConstants.VariableNamePort + "}";
             const string webAppName = "${" + HTTPConstants.VariableNameWebApp + "}";
 
             if (request.host == myStep.ServerNameAndPort)
             {
-                urlRequest = httpMethod + " " + fullURL.Replace(myStep.ServerName, serverName);
+                urlRequest = httpMethod + " " + fullURL;//fullURL.Replace(myStep.ServerName, serverName);
                 
                 // when URL shows the port
                 if (!myStep.IsDefaultPort())
@@ -155,10 +155,12 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                         serverPortName = request.port.ToString(CultureInfo.InvariantCulture);    
                     }
                 }
-
-                if (myStep.WebApp.Length > 0)
-                {
-                    urlRequest = urlRequest.Replace(myStep.WebApp, webAppName);
+                if (myStep.WebApp != null)
+                { 
+                    if (myStep.WebApp.Length > 0)
+                    {
+                        urlRequest = urlRequest.Replace(myStep.WebApp, webAppName);
+                    }
                 }
             }
             else
@@ -261,13 +263,13 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             }
 
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.domain", serverName);
-            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.port", "" + serverPortName);
+            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.port", serverPortName);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.connect_timeout", "");
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.response_timeout", "");
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.protocol", protocol);
 
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.contentEncoding", "");
-            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.path", path);
+            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.path", path.Replace(myStep.ServerName + "/",""));
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.method", httpMethod);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.follow_redirects", (followRedirects ? "true" : "false"));
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.auto_redirects", "false");
@@ -293,10 +295,10 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             }
 
             // add "Logging HTML response in jmeter.log when test fail"
-            if (isPrimary) 
-            {
-                JMeterWrapper.WriteBeanShellAssertionModule(xmlWriter);
-            }
+            //if (isPrimary) 
+            //{
+            //    JMeterWrapper.WriteBeanShellAssertionModule(xmlWriter);
+            //}
 
             // adding parameters extractor
             foreach (var extractor in parametersToExtract)

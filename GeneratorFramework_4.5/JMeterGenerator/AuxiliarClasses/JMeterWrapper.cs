@@ -146,6 +146,48 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
             xmlWriter.WriteEndElement();
         }
 
+        internal static void WriteHTTPDefault(XmlWriter xmlWriter, string servName, string servPort)
+        {
+
+            //<ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+            //    <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            //        <collectionProp name="Arguments.arguments"/>
+            //    </elementProp>
+            //    <stringProp name="HTTPSampler.domain">${server}</stringProp>
+            //    <stringProp name="HTTPSampler.port">${port}</stringProp>
+            //    <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+            //    <stringProp name="HTTPSampler.response_timeout"></stringProp>
+            //    <stringProp name="HTTPSampler.protocol"></stringProp>
+            //    <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+            //    <stringProp name="HTTPSampler.path"></stringProp>
+            //    <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
+            //</ConfigTestElement>
+            //<hashTree/>
+
+            WriteStartElement(xmlWriter, "ConfigTestElement", "HttpDefaultsGui", "ConfigTestElement", "HTTP Request Defaults", "true");
+
+            WriteStartElement(xmlWriter, "elementProp", "HTTPsampler.Arguments", "Arguments",
+                            "HTTPArgumentsPanel", "Arguments", "User Defined Variables", "true");
+            WriteStartAndEndElement(xmlWriter, "collectionProp", "Arguments.arguments");
+            xmlWriter.WriteEndElement();
+
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.domain", servName);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.port", servPort);
+            WriteStartAndEndElement(xmlWriter, "stringProp", "HTTPSampler.connect_timeout");
+            WriteStartAndEndElement(xmlWriter, "stringProp", "HTTPSampler.response_timeout");
+            WriteStartAndEndElement(xmlWriter, "stringProp", "HTTPSampler.protocol");
+            WriteStartAndEndElement(xmlWriter, "stringProp", "HTTPSampler.contentEncoding");
+            WriteStartAndEndElement(xmlWriter, "stringProp", "HTTPSampler.path");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.concurrentPool", "4");
+
+            // HttpDefaul
+            xmlWriter.WriteEndElement();
+
+            // Add and close 'hashTree'
+            xmlWriter.WriteStartElement("hashTree");
+            xmlWriter.WriteEndElement();
+        }
+
         internal static void WriteResultCollector(XmlWriter xmlWriter, CommonCollectorTypes cCollectorTypes)
         {
             string testName;
@@ -316,14 +358,14 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
             WriteStartElement(xmlWriter, "elementProp", "ThreadGroup.main_controller", "LoopController",
                             "LoopControlPanel", "LoopController", "Loop Controller", "true");
             WriteElementWithTextChildren(xmlWriter, "boolProp", "LoopController.continue_forever", "false");
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "LoopController.loops", "${" + iterations + "}");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "LoopController.loops", "1");
             xmlWriter.WriteEndElement();
 
             // <stringProp name="ThreadGroup.num_threads">${threadsAltaCliente}</stringProp>
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "ThreadGroup.num_threads", "${" + threads + "}");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "ThreadGroup.num_threads", "1");
 
             // <stringProp name="ThreadGroup.ramp_time">${rumpUpAltaCliente}</stringProp>
-            WriteElementWithTextChildren(xmlWriter, "stringProp", "ThreadGroup.ramp_time", "${" + rumpUp + "}");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "ThreadGroup.ramp_time", "3600");
 
             // <longProp name="ThreadGroup.start_time">1379894843000</longProp>
             WriteElementWithTextChildren(xmlWriter, "longProp", "ThreadGroup.start_time", "1379894843000");
