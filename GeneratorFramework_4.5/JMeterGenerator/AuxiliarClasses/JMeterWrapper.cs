@@ -92,6 +92,38 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
             ////*/
         }
 
+        internal static void WriteRegExpExtractor(XmlWriter xmlWriter, string param)
+        {
+            /*
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="RegEx Extractor - AjaxKey" enabled="true">
+              <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+              <stringProp name="RegexExtractor.refname">AjaxKey</stringProp>
+              <stringProp name="RegexExtractor.regex">"param":"(.+?)"</stringProp>
+              <stringProp name="RegexExtractor.template">$1$</stringProp>
+              <stringProp name="RegexExtractor.default">NOT FOUND</stringProp>
+              <stringProp name="RegexExtractor.match_number">1</stringProp>
+            </RegexExtractor>
+            <hashTree/>
+             */
+
+            WriteStartElement(xmlWriter, "RegexExtractor", "RegexExtractorGui", "RegexExtractor",
+                            "RegExp " + param, "false");
+
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.useHeaders", "false");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.refname", param);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.regex", "\"" + param +"\":\"(.+?)\"");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.template", "$1$");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.default", "NOT FOUND");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "RegexExtractor.match_number", "1");
+
+            xmlWriter.WriteEndElement();
+
+            // Add and close 'hashTree'
+            xmlWriter.WriteStartElement("hashTree");
+            xmlWriter.WriteEndElement();
+            //*/
+        }
+
         internal static void WriteCSVDataSet(XmlWriter xmlWriter, string fileName, string variableNames)
         {
             //<CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set - Alta Cliente.csv" enabled="true">
@@ -623,6 +655,57 @@ namespace Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses
                                    "\t}\n";
 
             WriteStartElement(xmlWriter, "BeanShellAssertion", "BeanShellAssertionGui", "BeanShellAssertion", name, "true");
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "TestPlan.comments", name);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.query", bsQuery);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.filename", string.Empty);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.parameters", string.Empty);
+            WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.resetInterpreter", "false");
+            xmlWriter.WriteEndElement();
+
+            xmlWriter.WriteStartElement("hashTree");
+            xmlWriter.WriteEndElement();
+        }
+
+        internal static void WriteBeanGX(XmlWriter xmlWriter)
+        {
+            /*
+            <BeanShellAssertion guiclass="BeanShellAssertionGui" testclass="BeanShellAssertion" testname="BeanShell Assertion" enabled="true">
+              <stringProp name="TestPlan.comments">Verify </stringProp>
+              <stringProp name="BeanShellAssertion.query">
+	if (vars.get(&quot;logFails_enable&quot;) == &quot;1&quot;)
+	{
+		for (a: SampleResult.getAssertionResults()) 
+		{
+			if (a.isError() || a.isFailure()) 
+			{
+				log.error(
+					Thread.currentThread().getName() + 
+					&quot;: &quot; + 
+					SampleLabel + 
+					&quot;: Assertion failed for response: &quot; + 
+					new String((byte[]) ResponseData)
+				);
+			}
+		}
+	}
+	else 
+	{
+		log.error(vars.get(&quot;logFails_enable&quot;));
+	}
+              </stringProp>
+              <stringProp name="BeanShellAssertion.filename"></stringProp>
+              <stringProp name="BeanShellAssertion.parameters"></stringProp>
+              <boolProp name="BeanShellAssertion.resetInterpreter">false</boolProp>
+            </BeanShellAssertion>
+             // */
+
+            const string name = "BS GX_AJAX_ENC";
+            const string bsQuery = "\nString gxAjaxKey = vars.get(\"GX_AJAX_KEY\");\n" +
+                                   "\nString AjaxType = vars.get(\"AjaxType\");\n" +
+                                   "\nString encrypthed = com.genexus.util.Encryption.encryptRijndael(AjaxType, gxAjaxKey));\n" +
+                                   "\nvars.put(\"GX_AJAX_ENC\", encrypthed);\n";
+
+            WriteStartElement(xmlWriter, "BeanShellAssertion", "BeanShellAssertionGui", "BeanShellAssertion", name, "false");
             WriteElementWithTextChildren(xmlWriter, "stringProp", "TestPlan.comments", name);
             WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.query", bsQuery);
             WriteElementWithTextChildren(xmlWriter, "stringProp", "BeanShellAssertion.filename", string.Empty);

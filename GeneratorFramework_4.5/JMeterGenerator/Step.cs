@@ -20,9 +20,9 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             return new JMeterRegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }
 
-        protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page)
+        protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page, bool sencodary = true, bool beanShell = true, bool gxApp = false)
         {
-            return new PageRequest(primaryRequest, abstractStep, page);
+            return new PageRequest(primaryRequest, abstractStep, page, sencodary, beanShell, gxApp);
         }
 
         internal override DefaultValidation CreateDefaultValidation()

@@ -16,7 +16,7 @@ namespace Abstracta.Generators.Framework.OSTAGenerator
             return new OSTARegExParameter(extractParameterFrom, useParameterIn, varName, expression, group, valueToReplace, description);
         }
 
-        protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page)
+        protected override AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page, bool secondary = true, bool beanShell = true, bool gxApp = false)
         {
             return new PageRequest(primaryRequest, abstractStep, page);
         }

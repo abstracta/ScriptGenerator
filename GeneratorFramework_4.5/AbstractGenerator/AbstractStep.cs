@@ -43,7 +43,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         internal CommandType Type { get; set; }
 
-        internal void AddRequest(Session httpReq, Page page)
+        internal void AddRequest(Session httpReq, Page page, bool secondary = true, bool beanShell = true, bool gxApp = false)
         {
             if (IsInBlackList(httpReq))
             {
@@ -64,7 +64,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                 // this means the current primaryRequest is first request of the step
                 if (Requests.Count == 0)
                 {
-                    var req = CreatePageRequest(httpReq, this, page);
+                    var req = CreatePageRequest(httpReq, this, page, secondary, beanShell, gxApp);
                     Requests.Add(req);
                 }
                 else
@@ -161,7 +161,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                     else
                     {
                         // Constructor creates PageRequest with default validations
-                        var req = CreatePageRequest(httpReq, this, page);
+                        var req = CreatePageRequest(httpReq, this, page, secondary, beanShell, gxApp);
                         Requests.Add(req);
                     }
                 }
@@ -187,7 +187,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
                         {
                             // Add it as a PrimaryRequest
                             // may be an error on GetRequestByUrl() ?
-                            var req = CreatePageRequest(httpReq, this, page);
+                            var req = CreatePageRequest(httpReq, this, page, secondary, beanShell, gxApp);
                             Requests.Add(req);
                         }
                     }
@@ -327,7 +327,7 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
 
         protected abstract AbstractRegExParameter CreateRegExpExtractorToGetRedirectParameters(ExtractFrom extractParameterFrom, List<UseIn> useParameterIn, string bodyAsString, string expression, string group, string valueToReplace, string description);
 
-        protected abstract AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page);
+        protected abstract AbstractPageRequest CreatePageRequest(Session primaryRequest, AbstractStep abstractStep, Page page, bool sencodary = true, bool beanShell = true, bool gxApp = true);
 
         protected AbstractPageRequest GetRequestByUrl(string url)
         {

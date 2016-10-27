@@ -8,19 +8,22 @@ namespace Abstracta.Generators.Framework.AbstractGenerator
         protected List<AbstractStep> Steps;
 
         protected string ScriptName, HomeFolder, ServerName, WebAppName;
-        protected bool IsBMScript;
+        protected bool IsBMScript, IsSecondary, IsBeanShell, IsGxApp;
 
         internal abstract void AddDataPools(List<DataPool> dataPools, string dataPoolFilesPath);
 
         internal abstract AbstractStep AddStep(string name, string type, string description, ScriptGenerator generator, int index);
 
-        internal virtual void Initialize(string outPath, string mainScriptName, string serverName, string webAppName, bool isBMScript = false)
+        internal virtual void Initialize(string outPath, string mainScriptName, string serverName, string webAppName, bool isBMScript = false, bool isSecondary = true, bool isBeanShell = true, bool isGxApp = false)
         {
             HomeFolder = outPath;
             ScriptName = mainScriptName;
             ServerName = serverName;
             WebAppName = webAppName;
             IsBMScript = isBMScript;
+            IsSecondary = isSecondary;
+            IsBeanShell = isBeanShell;
+            IsGxApp = isGxApp;
 
             Steps = new List<AbstractStep>();
         }

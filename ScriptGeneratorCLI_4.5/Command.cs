@@ -21,6 +21,8 @@ namespace ScriptGeneratorCLI_4._5
         private string _gxtestXmlPath = null;
         private bool _isGxApp = false;
         private bool _isBMScript = false;
+        private bool _isSecondary = false;
+        private bool _isBeanShell = false;
         private List<string> _fiddlerSessionPaths = new List<string>();
 
         public Command()
@@ -40,6 +42,8 @@ namespace ScriptGeneratorCLI_4._5
             HasOption("gxt|gxtestFile=", "gxtest xml file path", v => _gxtestXmlPath = v);
             HasOption("gx|isGxApplication", "flag to indicate if the application was generated with GeneXus", v => _isGxApp = v != null);
             HasOption("bm|isBMScript", "flag to indicate if the script will generat for BlazeMeter", v => _isBMScript = v != null);
+            HasOption("s|secondary ", "flag to indicate if the script will not generat secondary requests", v => _isSecondary = v != null);
+            HasOption("b|BeanShell", "flag to indicate if the script will not generat BeanShell assertion for each primary request", v => _isBeanShell = v != null);
 
             HasRequiredOption("f|fiddlerPath=", "(required) fiddler session path", v => _fiddlerSessionPaths.Add(v));
             HasOption("help", "show this message and exit", v => _showHelp = v != null);
@@ -70,7 +74,7 @@ namespace ScriptGeneratorCLI_4._5
 
             bool replaceInBodies = false; // Actually, I am not sure how it works this parameter, so I let it by default in false :)
             ScriptGenerator generator = new ScriptGenerator(_outputPath, _outputPath, gxTest, sessions, 
-                                                                    _host, _appName, _isGxApp, _isBMScript, replaceInBodies);
+                                                                    _host, _appName, _isGxApp, replaceInBodies, null, _isBMScript, !_isSecondary, !_isBeanShell);
             generator.GenerateScripts(GeneratorType.JMeter);
             generator.GenerateScripts(GeneratorType.Testing);
 

@@ -13,16 +13,21 @@ using Abstracta.Generators.Framework.JMeterGenerator.AuxiliarClasses;
 using Abstracta.Generators.Framework.JMeterGenerator.ParameterExtractor;
 using Fiddler;
 using ExtractFrom = Abstracta.Generators.Framework.AbstractGenerator.ParameterExtractor.ExtractFrom;
+using System.Text.RegularExpressions;
 
 namespace Abstracta.Generators.Framework.JMeterGenerator
 {
     internal class PageRequest : AbstractPageRequest
     {
         private static readonly string[] ExcludedHttpHeaders = { "Cookie",  "Content-Length", "Connection"};
+        private readonly bool Secondary, BeanShell, Genexus;
 
-        internal PageRequest(Session request, AbstractStep myStep, Page page)
+        internal PageRequest(Session request, AbstractStep myStep, Page page, bool secondary = true, bool beanShell = true, bool genexus = false)
             : base(request, myStep, page)
         {
+            Secondary = secondary;
+            BeanShell = beanShell;
+            Genexus = genexus;
         }
 
         public override string ToString()
@@ -37,8 +42,8 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     Formatting = Formatting.Indented
                 };
 
-                WriteHTTPSample(xmlWriter, MyStep, FiddlerSession, InfoPage, GetFullURL(InfoPage), Validations, ParametersToExtract);
-
+                WriteHTTPSample(xmlWriter, MyStep, FiddlerSession, InfoPage, GetFullURL(InfoPage), Validations, ParametersToExtract, beanShell : BeanShell, gxApp: Genexus);
+                
                 // if there aren't follow redirects, then add validations to the primary request
                 if (FollowRedirects.Count > 0)
                 {
@@ -62,7 +67,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                             followRedirect.InfoPage,
                                             followRedirect.GetFullURL(followRedirect.InfoPage),
                                             followRedirect.Validations,
-                                            followRedirect.ParametersToExtract);
+                                            followRedirect.ParametersToExtract, BeanShell);
                         }
                         // Disable the follow redirects by response code
                         // Change :: JMeter encodes the parameters of the redirect URL, producing bad bahaviour
@@ -74,7 +79,7 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                                             followRedirect.InfoPage,
                                             followRedirect.GetFullURL(followRedirect.InfoPage),
                                             followRedirect.Validations,
-                                            followRedirect.ParametersToExtract);
+                                            followRedirect.ParametersToExtract, BeanShell);
                         }
                     }
 
@@ -83,35 +88,38 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                 }
 
                 //// Adding secondary Requests
-                //if (SecondaryRequests.Count > 0)
-                //{
-                //    JMeterWrapper.WriteStartElement(xmlWriter, "GenericController", "LogicControllerGui", "GenericController", "Secondary Requests", "true");
-                //    xmlWriter.WriteEndElement();
+                if (Secondary)
+                {
+                    if (SecondaryRequests.Count > 0)
+                    {
+                        JMeterWrapper.WriteStartElement(xmlWriter, "GenericController", "LogicControllerGui", "GenericController", "Secondary Requests", "true");
+                        xmlWriter.WriteEndElement();
 
-                //    xmlWriter.WriteStartElement("hashTree");
+                        xmlWriter.WriteStartElement("hashTree");
 
-                //    // if controller
-                //    JMeterWrapper.WriteStartElement(xmlWriter, "IfController", "IfControllerPanel", "IfController", "If Controller", "true");
-                //    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "IfController.condition", "${" + HTTPConstants.VariableNameDebug + "} == 0");
-                //    JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "IfController.evaluateAll", "false");
-                //    xmlWriter.WriteEndElement();
+                        // if controller
+                        JMeterWrapper.WriteStartElement(xmlWriter, "IfController", "IfControllerPanel", "IfController", "If Controller", "true");
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "IfController.condition", "${" + HTTPConstants.VariableNameDebug + "} == 0");
+                        JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "IfController.evaluateAll", "false");
+                        xmlWriter.WriteEndElement();
 
-                //    xmlWriter.WriteStartElement("hashTree");
+                        xmlWriter.WriteStartElement("hashTree");
 
-                //    // write response assertion to skip HTTP response code validation
-                //    JMeterWrapper.WriteResponseAssertionSkipHTTPResponse(xmlWriter);
+                        // write response assertion to skip HTTP response code validation
+                        JMeterWrapper.WriteResponseAssertionSkipHTTPResponse(xmlWriter);
 
-                //    foreach (var secondaryRequest in SecondaryRequests)
-                //    {
-                //        WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null, secondaryRequest.fullUrl);
-                //    }
+                        foreach (var secondaryRequest in SecondaryRequests)
+                        {
+                            WriteHTTPSample(xmlWriter, MyStep, secondaryRequest, null, secondaryRequest.fullUrl);
+                        }
 
-                //    // </hashTree> 'if' controller
-                //    xmlWriter.WriteEndElement();
+                        // </hashTree> 'if' controller
+                        xmlWriter.WriteEndElement();
 
-                //    // </hashTree> 'generic' controller
-                //    xmlWriter.WriteEndElement();
-                //}
+                        // </hashTree> 'generic' controller
+                        xmlWriter.WriteEndElement();
+                    }
+                }
 
                 xmlWriter.Flush();
 
@@ -123,12 +131,12 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             return result;
         }
 
-        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullUrl, bool enable = true)
+        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullUrl, bool enable = true, bool beanShell = true)
         {
-            WriteHTTPSample(xmlWriter, myStep, request, page, fullUrl, new List<AbstractValidation>(), new List<AbstractParameterExtractor>(), false, enable);
+            WriteHTTPSample(xmlWriter, myStep, request, page, fullUrl, new List<AbstractValidation>(), new List<AbstractParameterExtractor>(), false, enable, beanShell);
         }
 
-        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullURL, IEnumerable<AbstractValidation> validations, IEnumerable<AbstractParameterExtractor> parametersToExtract, bool followRedirects = false, bool enable = true, bool isPrimary = true)
+        private static void WriteHTTPSample(XmlWriter xmlWriter, AbstractStep myStep, Session request, Page page, string fullURL, IEnumerable<AbstractValidation> validations, IEnumerable<AbstractParameterExtractor> parametersToExtract, bool followRedirects = false, bool enable = true, bool isPrimary = true, bool beanShell = true, bool gxApp = false)
         {
             var httpMethod = request.oRequest.headers.HTTPMethod;
 
@@ -197,6 +205,20 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
                     JMeterWrapper.WriteStartElement(xmlWriter, "elementProp", string.Empty, "HTTPArgument");
 
                     JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPArgument.always_encode", "false");
+
+                    if (gxApp)
+                    {
+                        string pattern;
+                        pattern = @"GX_AJAX_KEY%22%3A%22(.+?)%22";
+                        Regex rgx = new Regex(pattern);
+                        body = rgx.Replace(body, @"GX_AJAX_KEY%22%3A%22${GX_AJAX_KEY}%22");
+
+                        pattern = @"AJAX_SECURITY_TOKEN%22%3A%22(.+?)%22";
+                        rgx = new Regex(pattern);
+                        body = rgx.Replace(body, @"AJAX_SECURITY_TOKEN%22%3A%22${AJAX_SECURITY_TOKEN}%22");
+
+                    }
+
                     JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.value", body);
                     JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "Argument.metadata", "=");
 
@@ -269,7 +291,15 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.protocol", protocol);
 
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.contentEncoding", "");
-            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.path", path.Replace(myStep.ServerName + "/",""));
+            path = path.Replace(myStep.ServerName + "/", "");
+            if (gxApp)
+            {
+                string pattern;
+                pattern = @"\?(.+?),(.*?)gx-no-cache";
+                Regex rgx = new Regex(pattern);
+                path = rgx.Replace(path, @"\?${GX_AJAX_ENC},$2gx-no-cache");
+            }
+            JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.path", path);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "stringProp", "HTTPSampler.method", httpMethod);
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.follow_redirects", (followRedirects ? "true" : "false"));
             JMeterWrapper.WriteElementWithTextChildren(xmlWriter, "boolProp", "HTTPSampler.auto_redirects", "false");
@@ -295,10 +325,19 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
             }
 
             // add "Logging HTML response in jmeter.log when test fail"
-            //if (isPrimary) 
-            //{
-            //    JMeterWrapper.WriteBeanShellAssertionModule(xmlWriter);
-            //}
+            if (beanShell)
+            { 
+                if (isPrimary)
+                {
+                    JMeterWrapper.WriteBeanShellAssertionModule(xmlWriter);
+                }
+            }
+            if (gxApp)
+            {
+                JMeterWrapper.WriteRegExpExtractor(xmlWriter, "GX_AJAX_KEY");
+                JMeterWrapper.WriteRegExpExtractor(xmlWriter, "AJAX_SECURITY_TOKEN");
+                JMeterWrapper.WriteBeanGX(xmlWriter);
+            }
 
             // adding parameters extractor
             foreach (var extractor in parametersToExtract)

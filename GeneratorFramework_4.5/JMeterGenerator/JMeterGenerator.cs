@@ -141,6 +141,8 @@ namespace Abstracta.Generators.Framework.JMeterGenerator
 
             // <collectionProp name="Arguments.arguments">
             JMeterWrapper.WriteStartElement(xmlWriter, "collectionProp", "Arguments.arguments");
+            if (IsGxApp)
+                JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "AjaxType", "gxajaxEvt");
             if (!IsBMScript)
                 JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "HomeFolder", HomeFolder);
             //JMeterWrapper.WriteArgumentToCollectionProp(xmlWriter, "-----------------------------------",

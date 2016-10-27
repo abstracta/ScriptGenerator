@@ -22,7 +22,7 @@ namespace Abstracta.Generators.Framework
     public class ScriptGenerator
     {
         internal readonly string OutputPath, DataPoolsPath, ScriptName;
-        internal readonly bool IsBMScript;
+        internal readonly bool IsBMScript, IsSecondary, IsBeanShell, IsGenexusApp;
         internal readonly GxTestScriptWrapper ScriptWrapper;
         internal readonly FiddlerSessionsWrapper[] FiddlerSessions;
 
@@ -48,13 +48,18 @@ namespace Abstracta.Generators.Framework
         /// <param name="webApp">WebAppName</param>
         /// <param name="isGenexusApp">Indicates if the app is a genexus generated app. Taking some decisions for that case.</param>
         /// <param name="isBMScript">Indicates if the script is for BlazeMeter. Taking some decisions for that case.</param>
+        /// <param name="isSecondary">Indicates if the script must generate sencodary requests.</param>
+        /// <param name="isBeanShell">Indicates if the script must generate BeanSell Assertions.</param>
         /// <param name="replaceInBodies"></param>
         /// <param name="ext"></param>
-        public ScriptGenerator(string outputPath, string dataPoolsPath, XmlDocument performanceScript, IList<Session[]> fiddlerSessions, string server, string webApp, bool isGenexusApp, bool isBMScript = false, bool replaceInBodies = false, IEnumerable<string> ext = null)
+        public ScriptGenerator(string outputPath, string dataPoolsPath, XmlDocument performanceScript, IList<Session[]> fiddlerSessions, string server, string webApp, bool isGenexusApp, bool replaceInBodies = false, IEnumerable<string> ext = null, bool isBMScript = false, bool isSecondary = true, bool isBeanShell = true)
         {
             OutputPath = outputPath;
             DataPoolsPath = dataPoolsPath;
-            IsBMScript = isBMScript; ;
+            IsBMScript = isBMScript;
+            IsSecondary = isSecondary;
+            IsBeanShell = isBeanShell;
+            IsGenexusApp = isGenexusApp;
 
             var extenssions = ext == null? Extenssions : Extenssions.Concat(ext).ToArray();
 
@@ -114,7 +119,7 @@ namespace Abstracta.Generators.Framework
             var generator = GetGenerator(generatorType);
 
             // Initialize generator
-            generator.Initialize(OutputPath, ScriptName, ServerName, WebAppName, IsBMScript);
+            generator.Initialize(OutputPath, ScriptName, ServerName, WebAppName, IsBMScript, IsSecondary, IsBeanShell, IsGenexusApp);
 
             // add dataPools to generator
             var dataPools = ScriptWrapper.GetDataPools();
@@ -134,7 +139,7 @@ namespace Abstracta.Generators.Framework
                             var step = generator.AddStep(command.Name, command.Type, command.Desc, this, stepIndex);
                             foreach (var httpReq in command.RequestIds.Select(requestId => FiddlerSessions[0].GetRequest(requestId)))
                             {
-                                step.AddRequest(httpReq, _resultOfComparer);
+                                step.AddRequest(httpReq, _resultOfComparer, IsSecondary, IsBeanShell, IsGenexusApp);
                             }
 
                             stepIndex++;
